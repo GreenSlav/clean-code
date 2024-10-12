@@ -1,11 +1,11 @@
-﻿using Markdown.Enums;
-using Markdown.Interfaces;
+﻿using Markdown.Interfaces;
+using Markdown.Structs;
 
 namespace Markdown;
 
 public class MdProcessor
 {
-    private List<TokenType> _tokens;
+    private List<Token> _tokens;
     // Решил вынести поля ниже именно в этот класс, тк посчитал, что именно он должен
     // основным пайплайном md процессинга, включающего парсинг и рендер
     private IRenderer _renderer; 
@@ -26,12 +26,9 @@ public class MdProcessor
     public string ParseAndRender(string textToParse)
     {
         // Очищаем список токенов перед парсингом и рендером
-        _tokens = new List<TokenType>();
-        _parser.TryParse(textToParse, _tokens);
-        string resultOfRender = _renderer.RenderMarkdown(_tokens);
+        _tokens = _parser.Parse(textToParse, _parser.TagsToParse);
+        string resultOfRender = _renderer.RenderMarkdown(_tokens, textToParse);
 
-        // Пока вот такая заглушка для тестирования
-        return "<b>text</b>";
         return resultOfRender;
     }
 }

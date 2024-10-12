@@ -1,8 +1,8 @@
-﻿using Markdown.Enums;
+﻿using Markdown.Structs;
 
 namespace Markdown.Interfaces;
 
 public interface IRenderer
 {
-    string RenderMarkdown(List<TokenType> tokens);
+    string RenderMarkdown(List<Token> tokens, string sourceString);
 }

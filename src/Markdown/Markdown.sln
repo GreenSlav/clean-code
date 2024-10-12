@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Markdown", "Markdown\Markdown.csproj", "{8BF7C784-0D1B-461F-B834-8874BBAC6E83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownTest", "MarkdownTest\MarkdownTest.csproj", "{9A82728C-3FBA-41AB-9511-33C1864E1F79}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownProcessorTest", "MarkdownProcessorTest\MarkdownProcessorTest.csproj", "{9A82728C-3FBA-41AB-9511-33C1864E1F79}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDraft", "MarkdownDraft\MarkdownDraft.csproj", "{4E60378F-CFB0-4C01-A8A8-61B4983D3846}"
 EndProject

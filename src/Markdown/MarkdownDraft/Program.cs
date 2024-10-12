@@ -1,10 +1,74 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Markdown;
+using Markdown.Classes;
+using Markdown.Interfaces;
+using Markdown.Structs;
 
 namespace MarkdownDraft;
 
 class Program
 {
+    public static bool IsUnderlinesWithinNumbers(string sourceString, SpecialSymbol openingSymbol,
+        SpecialSymbol closingSymbol)
+    {
+        bool containsAllNumbers = sourceString.Substring(openingSymbol.Index + openingSymbol.TagLength, 
+                closingSymbol.Index - openingSymbol.Index - openingSymbol.TagLength)
+            .All(c => char.IsDigit(c));
+
+        bool leftGood = openingSymbol.Index - 1 < 0 || sourceString[openingSymbol.Index - 1] == ' ';
+        bool rightGood = closingSymbol.Index + closingSymbol.TagLength >= sourceString.Length || 
+                         sourceString[closingSymbol.Index + closingSymbol.TagLength] == ' ';
+
+        // Случаи когда выделяем целое число, которое не входит ни в какое слово
+        if (containsAllNumbers && leftGood && rightGood)
+            return true;
+        
+        // К этому моменту если выражение даст true, значит среди цифр точно есть буквы и 
+        // нужно вернуть false 
+        bool containsAnyNumbers = sourceString.Substring(openingSymbol.Index + openingSymbol.TagLength, 
+                closingSymbol.Index - openingSymbol.Index - openingSymbol.TagLength)
+            .Any(c => char.IsDigit(c));
+
+        if (containsAnyNumbers)
+            return false;
+            
+        // Но может быть ситуация: "_ццц_ц1"
+        // Остается найти в текущем слове цифры
+        int leftIndex = openingSymbol.Index - 1;
+        // Наткнулись на пробел идя слева от слова
+        bool encounteredSpaceFromLeft = false;
+        int rightIndex = closingSymbol.Index + closingSymbol.TagLength;
+        // Наткнулись на пробел идя справа от слова
+        bool encounteredSpaceFromRight = false;
+        
+        // В слове, подверженном выделению, есть цифры, выделять в нем не стоит
+        bool wordWithinNumbers = false;
+        
+        while ((!encounteredSpaceFromLeft || !encounteredSpaceFromRight) && (leftIndex >= 0 || rightIndex < sourceString.Length) )
+        {
+            if (leftIndex >= 0)
+            {
+                if (char.IsDigit(sourceString[leftIndex]))
+                    wordWithinNumbers = true;
+                encounteredSpaceFromLeft = sourceString[leftIndex] == ' ';
+            }
+            
+            if (rightIndex < sourceString.Length)
+            {
+                if (char.IsDigit(sourceString[rightIndex]))
+                    wordWithinNumbers = true;
+                encounteredSpaceFromRight = sourceString[rightIndex] == ' ';
+            }
+            
+            --leftIndex;
+            ++rightIndex;
+        }
+
+
+        return !wordWithinNumbers;
+    }
+    
     static void Main(string[] args)
     {
         // TODO: Сделать так, чтоб внутри одинарных не работали двойные для этого в enum'е TokenType я специально иерархически типы токенов выстроил. Сделаем отдельный метод ValidateTokens или чет типо того ( СДЕЛАНО )
@@ -35,8 +99,26 @@ class Program
         string str15 =
             "# Header";
 
+        
+
+        string test = "# a_w_s";
+
+        var ital = new ItalicsTag();
+        var bold = new BoldTag();
+        var header = new HeaderTag();
+        var lineBreak = new LineBreak();
+        var strEnd = new StringEnd();
+        var list = new List<ITag>();
+        list.Add(header);
+        list.Add(lineBreak);
+        list.Add(bold);
+        list.Add(ital);
+        list.Add(strEnd);
+        var mdProc = new MdProcessor(new StringParser(list), new ConsoleMdRenderer());
+        Console.WriteLine(mdProc.ParseAndRender(test));
 
 
+        return;
         /*string test = "\\\\\\_wdada\\_      \\_wdada\\_";
         Console.WriteLine(GetEscapedText(test));
         return;*/
@@ -44,8 +126,8 @@ class Program
         stopwatch.Start();
 
         
-        var result = Parse(str14);
-        var rendered = Render(result, str14);
+        var result = Parse(test);
+        var rendered = Render(result, test);
         Console.WriteLine(rendered);
         
 
@@ -54,10 +136,11 @@ class Program
         
         
         Console.WriteLine(res);
-        Console.WriteLine(str14.Length);
+        Console.WriteLine(test.Length);
         
-        Thread.Sleep(10000);
-        return;
+        
+        //Thread.Sleep(10000);
+        
         foreach (var VARIABLE in result)
         {
             Console.WriteLine($"{VARIABLE.Type}: {VARIABLE.StartIndex} - {VARIABLE.EndIndex}");
@@ -66,7 +149,7 @@ class Program
             {
                 foreach (var token in VARIABLE.InsideTokens)
                 {
-                    Console.WriteLine($"\t{token.Type}: {token.StartIndex} - {token.EndIndex}: {token.InsideTokens?.Count}");
+                    Console.WriteLine($"\t{token.Type}: {token.StartIndex} - {token.EndIndex}");
                     var arr2 = token.InsideTokens;
                     if (arr2 != null)
                     {
@@ -178,6 +261,7 @@ class Program
         }
         
         
+        
         for (int i = 0; i < listOfSpecialSymbols.Count; i++)
         {
             var symbol = listOfSpecialSymbols[i];
@@ -223,7 +307,7 @@ class Program
 
                             bool noSpareSpaces =
                                 str[openSymbolsStack[j].Index + openSymbolsStack[j].TagLength] != ' ' &&
-                                str[symbol.Index - symbol.TagLength] != ' ';
+                                str[symbol.Index - 1] != ' ';
 
                             bool distanceBetweenStartAndEndMoreThanZero =
                                 symbol.Index - openSymbolsStack[j].Index > symbol.TagLength;
@@ -256,7 +340,7 @@ class Program
                         }
                         if (symbol.Type == TokenType.Header)
                         {
-                            bool spaceAfterSharp = (j + 1) < str.Length && str[openSymbolsStack[j].Index + 1] == ' ';
+                            bool spaceAfterSharp = (openSymbolsStack[j].Index + 1) < str.Length && str[openSymbolsStack[j].Index + 1] == ' ';
                             bool firstTagIsOpening = openSymbolsStack[j].IsClosingTag == false;
                             bool lastTagIsClosing = symbol.IsClosingTag;
 
