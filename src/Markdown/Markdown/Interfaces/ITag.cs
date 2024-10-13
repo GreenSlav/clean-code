@@ -6,16 +6,18 @@ namespace Markdown.Interfaces;
 
 public interface ITag
 {
-     string Symbol { get; }
-     bool IsPaired { get; }
+    string Symbol { get; }
+    bool IsPaired { get; }
      
-     // Чтоб отличать действительно теги, от вспомогательных символов, например '\n' или конец строки
-     // P.S. Походу это свойство все-таки не понадобится
-     bool IsActuallyTag { get; }
-     TokenType TokenType { get; }
-     
-     // ref нужен для изменения индекса в случае идентификации какого-то тега,
-     // чтоб перепргынуть символы с найденным тегом, чтоб потом их опять не проходить
-    bool CheckSymbolForTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols, ref bool isOpenedHeader);
+    TokenType TokenType { get; }
+    // Токены, которые по вложенности могут лежать внутри текущего тега
+    TokenType[] TagsCanBeInside { get; }
+    // То, как выглядит тег
+    string[] Pattern { get; }
+    
+    // ref нужен для изменения индекса в случае идентификации какого-то тега,
+    // чтоб перепрыгнуть символы с найденным тегом, чтоб потом их опять не проходить
+    void ValidateInsideTokens(Token token, string sourceString);
+    bool CheckSymbolForTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols);
     bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol);
 }

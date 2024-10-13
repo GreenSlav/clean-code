@@ -2,29 +2,37 @@ using Markdown.Classes;
 using Markdown.Enums;
 using Markdown.Interfaces;
 
-namespace Markdown.Structs;
+namespace Markdown.Structs.Tags;
 
 public struct BoldTag: ITag
 {
     public string Symbol { get; }
     public bool IsPaired { get; }
-    public bool IsActuallyTag { get; }
     public TokenType TokenType { get; }
+    public TokenType[] TagsCanBeInside { get; }
+    public string[] Pattern { get; }
+
 
     public BoldTag()
     {
         Symbol = "__";
         IsPaired = true;
-        IsActuallyTag = true;
         TokenType = TokenType.Bold;
+        TagsCanBeInside = [TokenType.Text, TokenType.Italics, TokenType.Link];
+        Pattern = ["__", "__"];
     }
-    
-    public bool CheckSymbolForTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols, ref bool isOpenedHeader)
+
+    public void ValidateInsideTokens(Token token, string sourceString)
+    {
+        
+    }
+
+    public bool CheckSymbolForTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols)
     {
         if (index < sourceString.Length - 1 && sourceString.Substring(index, 2) == "__")
         {
             specialSymbols.Add(new SpecialSymbol { Type = TokenType.Bold, Index = index, TagLength = 2, IsPairedTag = true });
-            index += 2;
+            //index += 2;
             return true;
         }
 

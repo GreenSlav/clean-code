@@ -13,5 +13,5 @@ public struct SpecialSymbol
     public int TagLength { get; set; }
     // По большей части понадобится только для непарных тегов
     public bool IsClosingTag { get; set; }
-    public bool IsEscaped { get; set; }
+    //public bool IsEscaped { get; set; }
 }

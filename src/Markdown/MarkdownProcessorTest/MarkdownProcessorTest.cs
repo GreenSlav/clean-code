@@ -2,6 +2,7 @@ using Markdown;
 using Markdown.Classes;
 using Markdown.Interfaces;
 using Markdown.Structs;
+using Markdown.Structs.Tags;
 using Xunit.Abstractions;
 
 namespace MarkdownProcessorTest;
@@ -16,16 +17,16 @@ public class MarkdownProcessorTest
         _testOutputHelper = testOutputHelper;
         var ital = new ItalicsTag();
         var bold = new BoldTag();
+        var link = new Link();
         var header = new HeaderTag();
-        var lineBreak = new LineBreak();
-        var strEnd = new StringEnd();
+        var main = new MainTag();
         var list = new List<ITag>();
         
-        list.Add(header);
-        list.Add(lineBreak);
         list.Add(bold);
         list.Add(ital);
-        list.Add(strEnd);
+        list.Add(link);
+        list.Add(header);
+        list.Add(main);
         
         _markdownProcessor = new MdProcessor(new StringParser(list), new ConsoleMdRenderer());
     }
@@ -107,6 +108,20 @@ public class MarkdownProcessorTest
     [InlineData("Ку\\\\_рсив_ внутри слова", "<div>Ку\\<em>рсив</em> внутри слова</div>")]
     [InlineData("Жи\\\\__рный__ внутри слова", "<div>Жи\\<strong>рный</strong> внутри слова</div>")]
     public void ConvertToHtml_ShouldEscapeBackslash(string markdownText, string expectedHtml)
+    {
+        string result = _markdownProcessor.ParseAndRender(markdownText);
+
+        Assert.Equal(expectedHtml, result);
+    }
+    
+    [Theory]
+    [InlineData(@"Это ссылка на [Google](https://www.google.com)", @"<div>Это ссылка на <a href=""https://www.google.com"" title="""">Google</a></div>")]
+    [InlineData(@"Это ссылка на [Google](https://www.google.com). с точкой", @"<div>Это ссылка на <a href=""https://www.google.com"" title="""">Google</a>. с точкой</div>")]
+    [InlineData(@"Это ссылка на .[Google](https://www.google.com). с точкой", @"<div>Это ссылка на .<a href=""https://www.google.com"" title="""">Google</a>. с точкой</div>")]
+    [InlineData("Это ссылка на [Google](https://www.google.com \"Тройные\"кавычки\")", "<div>Это ссылка на [Google](https://www.google.com \"Тройные\"кавычки\")</div>")]
+    [InlineData("Это ссылка на [Google](https://www.google.com \"Какой-то тайтл\"). с точкой", "<div>Это ссылка на <a href=\"https://www.google.com\" title=\"Какой-то тайтл\">Google</a>. с точкой</div>")]
+    [InlineData("Это ссылка на [Google](https://www.google.com  \"Какой-то длинный тайтл с пробелами\" ). с точкой", "<div>Это ссылка на <a href=\"https://www.google.com\" title=\"Какой-то длинный тайтл с пробелами\">Google</a>. с точкой</div>")]
+    public void ConvertToHtml_ShouldHandleUrl(string markdownText, string expectedHtml)
     {
         string result = _markdownProcessor.ParseAndRender(markdownText);
 

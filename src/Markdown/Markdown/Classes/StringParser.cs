@@ -2,6 +2,7 @@
 using Markdown.Interfaces;
 using Markdown.Structs;
 using Markdown.Enums;
+using Markdown.Structs.Tags;
 
 namespace Markdown.Classes;
 
@@ -30,9 +31,6 @@ public class StringParser: IParser
             InsideTokens = new List<Token>()
         }; 
         
-        // Проверка на то, закрыт ли header
-        bool isOpenedHeader = false;
-
         for (int i = 0; i < textToBeMarkdown.Length; i++)
         {
             // Если перед тегом стоит четное кол-во экранирований, то пропускаем этот тег
@@ -41,10 +39,19 @@ public class StringParser: IParser
                 continue;
             }
 
+            var ch = textToBeMarkdown[i];
             foreach (var tag in tagsToParse)
             {
-                tag.CheckSymbolForTag(textToBeMarkdown, ref i, listOfSpecialSymbols, ref isOpenedHeader);
+                // Пытаемся проверить текущий символ на специальность, если текущий индекс еще не занят
+                // каким-то специальным символом
+                if (listOfSpecialSymbols.Count == 0 
+                    || (listOfSpecialSymbols.Count > 0 
+                        && listOfSpecialSymbols[^1].Index + listOfSpecialSymbols[^1].TagLength - 1 < i))
+                    tag.CheckSymbolForTag(textToBeMarkdown, ref i, listOfSpecialSymbols);
             }
+            
+            // Проверяем, не осталось ли незакрытого заголовка
+            HeaderTag.CheckForUnclosedHeaderTag(textToBeMarkdown, ref i, listOfSpecialSymbols);
         }
         
         
@@ -125,8 +132,12 @@ public class StringParser: IParser
                     // Контент токенов от самих тегов
                     TagLength = openingSymbol.TagLength,
                     IsPairedTag = openingSymbol.IsPairedTag,
-                    InsideTokens = TokenUtils.ExtractInsideTokens(openingSymbol.Index, symbol.Index, mainToken.InsideTokens)
+                    InsideTokens =
+                        TokenUtils.ExtractInsideTokens(openingSymbol.Index, symbol.Index, mainToken.InsideTokens),
                 };
+
+                TokenUtils.DefineTag(symbol.Type, tagsToParse)?.ValidateInsideTokens(newToken, textToBeMarkdown);
+
 
                 // Остается одна проблема
                 // Вложенные в другие теги теги все равно будут находиться в tokens
@@ -136,7 +147,7 @@ public class StringParser: IParser
             }
         }
 
-        TokenUtils.RemoveInvalidTokens(mainToken);
+        TokenUtils.RemoveInvalidTokens(mainToken, tagsToParse);
         TokenUtils.FillTokensListsWithTextTokens(mainToken);
         
         return mainToken.InsideTokens;

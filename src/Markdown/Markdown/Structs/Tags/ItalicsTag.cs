@@ -2,33 +2,37 @@ using Markdown.Classes;
 using Markdown.Enums;
 using Markdown.Interfaces;
 
-namespace Markdown.Structs;
+namespace Markdown.Structs.Tags;
 
 public struct ItalicsTag: ITag
 {
     public string Symbol { get; }
     public bool IsPaired { get; }
-    
-    public bool IsActuallyTag { get; }
-    
     public TokenType TokenType { get; }
+    public TokenType[] TagsCanBeInside { get; }
+    public string[] Pattern { get; }
 
     public ItalicsTag()
     {
         Symbol = "_";
         IsPaired = true;
-        IsActuallyTag = true;
         TokenType = TokenType.Italics;
+        TagsCanBeInside = [TokenType.Text, TokenType.Link];
+        Pattern = ["_", "_"];
     }
 
-    public bool CheckSymbolForTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols,
-        ref bool isOpenedHeader)
+    public void ValidateInsideTokens(Token token, string sourceString)
+    {
+        
+    }
+
+    public bool CheckSymbolForTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols)
     {
         if (index < sourceString.Length && sourceString[index] == '_')
         {
             specialSymbols.Add(new SpecialSymbol
                 { Type = TokenType.Italics, Index = index, TagLength = 1, IsPairedTag = true });
-            ++index;
+            //++index;
 
             return true;
         }

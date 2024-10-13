@@ -11,7 +11,7 @@ public static class SpecialSymbolUtils
                 closingTag.Index - openingTag.Index - openingTag.TagLength)
             .Any(c => char.IsWhiteSpace(c));
 
-
+        // Вот ЭТО ВЫРАЖЕНИЕ ПЕРЕСМОТРЕТЬ, хотя вроде правильное
         return !(containsSpace &&
                  openingTag.Index - 1 >= 0 &&
                  closingTag.Index + closingTag.TagLength < src.Length &&
@@ -120,9 +120,8 @@ public static class SpecialSymbolUtils
                     }
                     else
                     {
-                        // В проивном случае просто пары удалим и один нечетный оставим
+                        // В противном случае просто пары удалим и один нечетный оставим
                         sb.Append(textToken.Substring(i - escapedCounter, escapedCounter / 2 + 1));
-
                     }
                 }
             }

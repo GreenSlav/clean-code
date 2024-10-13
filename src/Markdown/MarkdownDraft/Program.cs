@@ -4,6 +4,7 @@ using Markdown;
 using Markdown.Classes;
 using Markdown.Interfaces;
 using Markdown.Structs;
+using Markdown.Structs.Tags;
 
 namespace MarkdownDraft;
 
@@ -101,19 +102,19 @@ class Program
 
         
 
-        string test = "# a_w_s";
+        string test = "Это ссылка на [Google](https://www.google.com \"Тройные\"кавычки\")";
 
         var ital = new ItalicsTag();
         var bold = new BoldTag();
+        var link = new Link();
         var header = new HeaderTag();
-        var lineBreak = new LineBreak();
-        var strEnd = new StringEnd();
+        var main = new MainTag();
         var list = new List<ITag>();
-        list.Add(header);
-        list.Add(lineBreak);
         list.Add(bold);
         list.Add(ital);
-        list.Add(strEnd);
+        list.Add(link);
+        list.Add(header);
+        list.Add(main);
         var mdProc = new MdProcessor(new StringParser(list), new ConsoleMdRenderer());
         Console.WriteLine(mdProc.ParseAndRender(test));
 

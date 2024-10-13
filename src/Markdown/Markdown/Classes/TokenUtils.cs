@@ -1,10 +1,25 @@
 using Markdown.Enums;
+using Markdown.Interfaces;
 using Markdown.Structs;
 
 namespace Markdown.Classes;
 
 public static class TokenUtils
 {
+    public static TokenType[] DefineAllowedInsideTokens(Token token, List<ITag> tags)
+    {
+        var defineAllowedInsideTokens = tags.FirstOrDefault(tag => tag.TokenType == token.Type)?.TagsCanBeInside;
+        if (defineAllowedInsideTokens != null)
+            return defineAllowedInsideTokens;
+
+        return [];
+    }
+    
+    public static ITag? DefineTag(TokenType tokenType, List<ITag> tags)
+    {
+        return tags.FirstOrDefault(tag => tag.TokenType == tokenType);
+    }
+    
     public static List<Token> ExtractInsideTokens(int startIndex, int endIndex, List<Token> tokens)
     {
         // Извлекаем вложенные токены, которые лежат внутри текущего токена
@@ -34,20 +49,32 @@ public static class TokenUtils
     // NOTE: По сути здесь никогда не может быть nullRefEx,
     // тк как любому токену присуждается минимум пустой список
     // САМОЕ ГЛАВНОЕ - ВЫЗЫВАТЬ ЭТОТ МЕТОД ПЕРЕД FillTokensListsWithTextTokens
-    public static void RemoveInvalidTokens(Token token)
+    public static void RemoveInvalidTokens(Token token, List<ITag> activeTags)
     {
+        var allowedTagsInside = DefineAllowedInsideTokens(token, activeTags);
+        
         for (int i = token.InsideTokens.Count - 1; i >= 0; i--)
         {
             var insideToken = token.InsideTokens[i];
+
+            bool tagsIsAllowed = false;
             
-            if (insideToken.Type >= token.Type)
+            foreach (var allowedTag in allowedTagsInside)
+            {
+                if (insideToken.Type == allowedTag)
+                {
+                    tagsIsAllowed = true;
+                }
+            }
+            
+            if (!tagsIsAllowed)
             {
                 token.InsideTokens.RemoveAt(i); // Удаляем токен по индексу
             }
             else
             {
                 // Рекурсивный вызов для вложенных токенов
-                RemoveInvalidTokens(insideToken);
+                RemoveInvalidTokens(insideToken, activeTags);
             }
         }
     }
@@ -100,9 +127,6 @@ public static class TokenUtils
                 IsPairedTag = false,
                 TagLength = 0,
             });
-            
-            Console.WriteLine($"{textStartIndex} - {endIndex}");
-
         }
     }
 }
