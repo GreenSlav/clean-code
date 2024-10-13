@@ -105,8 +105,6 @@ public static class TokenUtils
                     IsPairedTag = false,
                     TagLength = 0,
                 });
-                Console.WriteLine($"{textStartIndex} - {insideToken.StartIndex - 1}");
-                Console.WriteLine("============");
 
                 ++i; // Перепрыгиваем только что созданный токен
             }
