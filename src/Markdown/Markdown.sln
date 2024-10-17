@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownProcessorTest", "Ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDraft", "MarkdownDraft\MarkdownDraft.csproj", "{4E60378F-CFB0-4C01-A8A8-61B4983D3846}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MdProcessor", "MdProcessor\MdProcessor.csproj", "{5ECB4C97-DDAA-4F73-A78D-AAF95D347E98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{4E60378F-CFB0-4C01-A8A8-61B4983D3846}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E60378F-CFB0-4C01-A8A8-61B4983D3846}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E60378F-CFB0-4C01-A8A8-61B4983D3846}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ECB4C97-DDAA-4F73-A78D-AAF95D347E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ECB4C97-DDAA-4F73-A78D-AAF95D347E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ECB4C97-DDAA-4F73-A78D-AAF95D347E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ECB4C97-DDAA-4F73-A78D-AAF95D347E98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
