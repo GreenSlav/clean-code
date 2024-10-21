@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MdPWASM</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <!-- If you add any scoped CSS files, uncomment the following to load them
+    <link href="MdPWASM.styles.css" rel="stylesheet" /> -->
+</head>
+
+<body>
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <script>
+        window.blazorInterop = {
+            registerProcessor: function (processor) {
+                window.processor = processor;
+            },
+            parseMarkdown: async function (markdownText) {
+                if (!window.processor) {
+                    throw new Error("WASM module is not ready yet.");
+                }
+                return await window.processor.invokeMethodAsync("ParseMarkdown", markdownText);
+            }
+        };
+    </script>
+</body>
+
+</html>

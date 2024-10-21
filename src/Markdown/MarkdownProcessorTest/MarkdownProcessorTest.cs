@@ -1,8 +1,8 @@
-using Markdown;
-using Markdown.Classes;
-using Markdown.Interfaces;
-using Markdown.Structs;
-using Markdown.Structs.Tags;
+using MarkdownProcessor;
+using MarkdownProcessor.Classes;
+using MarkdownProcessor.Interfaces;
+using MarkdownProcessor.Structs;
+using MarkdownProcessor.Structs.Tags;
 using Xunit.Abstractions;
 
 namespace MarkdownProcessorTest;

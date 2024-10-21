@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Markdown\Markdown.csproj" />
+      <ProjectReference Include="..\MarkdownProcessor\MarkdownProcessor.csproj" />
     </ItemGroup>
 
 </Project>

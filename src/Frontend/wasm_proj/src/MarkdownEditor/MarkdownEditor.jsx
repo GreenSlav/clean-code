@@ -3,27 +3,47 @@ import { useEffect, useState } from 'react';
 const MarkdownEditor = () => {
     const [markdownText, setMarkdownText] = useState('');
     const [htmlOutput, setHtmlOutput] = useState('');
-    const [wasmInstance, setWasmInstance] = useState(null);  // Сохраняем инстанс WebAssembly
 
     useEffect(() => {
-        const loadWasm = async () => {
-            // Загрузка WebAssembly только один раз при первом рендере
-            const response = await fetch('path/to/your/markdownprocessor.wasm');
-            const bytes = await response.arrayBuffer();
-            const module = await WebAssembly.instantiate(bytes);
-            setWasmInstance(module.instance.exports);  // Сохраняем инстанс для переиспользования
+        const loadBlazor = async () => {
+            try {
+                await import('http://localhost:8080/_framework/blazor.webassembly.js');
+
+                // Настройка загрузки ресурсов Blazor
+                await window.Blazor.start({
+                    loadBootResource: (type, name, defaultUri, integrity) => {
+                        return `http://localhost:8080/_framework/${name}`;
+                    }
+                }).then(() => {
+                    console.log('Blazor WebAssembly инициализирован');
+                }).catch(error => {
+                    console.error('Ошибка инициализации Blazor WebAssembly:', error);
+                });
+            } catch (error) {
+                console.error('Ошибка при загрузке Blazor WebAssembly:', error);
+            }
         };
 
-        loadWasm();
+        loadBlazor();
     }, []);
 
+    // Используем useEffect для вызова processMarkdown после обновления markdownText
     useEffect(() => {
-        if (wasmInstance) {
-            // Вызываем функцию парсинга, если WebAssembly модуль загружен
-            const parsedHtml = wasmInstance.ParseMarkdown(markdownText);
-            setHtmlOutput(parsedHtml);
+        processMarkdown();
+    }, [markdownText]);  // Этот useEffect сработает каждый раз, когда markdownText изменится
+
+    const processMarkdown = async () => {
+        try {
+            if (window.processor) {
+                const parsedHtml = await window.blazorInterop.parseMarkdown(markdownText);
+                setHtmlOutput(parsedHtml);
+            } else {
+                console.error('Blazor WebAssembly не загружен');
+            }
+        } catch (error) {
+            console.error('Ошибка при парсинге Markdown:', error);
         }
-    }, [markdownText, wasmInstance]);  // Обновляем только если изменился текст или был загружен wasm
+    };
 
     return (
         <div>
@@ -33,6 +53,7 @@ const MarkdownEditor = () => {
                 placeholder="Введите ваш Markdown"
             />
             <div dangerouslySetInnerHTML={{ __html: htmlOutput }} />
+            <button onClick={processMarkdown}>Преобразовать</button>
         </div>
     );
 };
