@@ -15,7 +15,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 var host = builder.Build();
 
 var jsRuntime = host.Services.GetRequiredService<IJSRuntime>();
-await jsRuntime.InvokeVoidAsync("console.log", "Hello World from Blazor WebAssembly!");
+await jsRuntime.InvokeVoidAsync("console.log", "Blazor module is loading...");
 
 var jsInterop = new MarkdownProcessorInterop();
 
