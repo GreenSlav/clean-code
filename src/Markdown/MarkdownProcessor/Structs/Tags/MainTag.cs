@@ -35,4 +35,9 @@ public struct MainTag: ITag
     {
         return true;
     }
+
+    public void ResetParameters()
+    {
+        
+    }
 }

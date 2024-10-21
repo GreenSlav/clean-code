@@ -10,66 +10,6 @@ namespace MarkdownDraft;
 
 class Program
 {
-    public static bool IsUnderlinesWithinNumbers(string sourceString, SpecialSymbol openingSymbol,
-        SpecialSymbol closingSymbol)
-    {
-        bool containsAllNumbers = sourceString.Substring(openingSymbol.Index + openingSymbol.TagLength, 
-                closingSymbol.Index - openingSymbol.Index - openingSymbol.TagLength)
-            .All(c => char.IsDigit(c));
-
-        bool leftGood = openingSymbol.Index - 1 < 0 || sourceString[openingSymbol.Index - 1] == ' ';
-        bool rightGood = closingSymbol.Index + closingSymbol.TagLength >= sourceString.Length || 
-                         sourceString[closingSymbol.Index + closingSymbol.TagLength] == ' ';
-
-        // Случаи когда выделяем целое число, которое не входит ни в какое слово
-        if (containsAllNumbers && leftGood && rightGood)
-            return true;
-        
-        // К этому моменту если выражение даст true, значит среди цифр точно есть буквы и 
-        // нужно вернуть false 
-        bool containsAnyNumbers = sourceString.Substring(openingSymbol.Index + openingSymbol.TagLength, 
-                closingSymbol.Index - openingSymbol.Index - openingSymbol.TagLength)
-            .Any(c => char.IsDigit(c));
-
-        if (containsAnyNumbers)
-            return false;
-            
-        // Но может быть ситуация: "_ццц_ц1"
-        // Остается найти в текущем слове цифры
-        int leftIndex = openingSymbol.Index - 1;
-        // Наткнулись на пробел идя слева от слова
-        bool encounteredSpaceFromLeft = false;
-        int rightIndex = closingSymbol.Index + closingSymbol.TagLength;
-        // Наткнулись на пробел идя справа от слова
-        bool encounteredSpaceFromRight = false;
-        
-        // В слове, подверженном выделению, есть цифры, выделять в нем не стоит
-        bool wordWithinNumbers = false;
-        
-        while ((!encounteredSpaceFromLeft || !encounteredSpaceFromRight) && (leftIndex >= 0 || rightIndex < sourceString.Length) )
-        {
-            if (leftIndex >= 0)
-            {
-                if (char.IsDigit(sourceString[leftIndex]))
-                    wordWithinNumbers = true;
-                encounteredSpaceFromLeft = sourceString[leftIndex] == ' ';
-            }
-            
-            if (rightIndex < sourceString.Length)
-            {
-                if (char.IsDigit(sourceString[rightIndex]))
-                    wordWithinNumbers = true;
-                encounteredSpaceFromRight = sourceString[rightIndex] == ' ';
-            }
-            
-            --leftIndex;
-            ++rightIndex;
-        }
-
-
-        return !wordWithinNumbers;
-    }
-    
     static void Main(string[] args)
     {
         // TODO: Сделать так, чтоб внутри одинарных не работали двойные для этого в enum'е TokenType я специально иерархически типы токенов выстроил. Сделаем отдельный метод ValidateTokens или чет типо того ( СДЕЛАНО )
@@ -99,16 +39,12 @@ class Program
         string str14 = "# Заголовок первого уровня\n\nЭто пример длинного текста для тестирования парсера MarkdownProcessor. В этом тексте мы используем _курсив_ и __жирный текст__ для проверки, как работает обработка таких тегов.\n\nТестирование парсера важно для того, чтобы убедиться, что все теги правильно интерпретируются. Например, _курсивный текст_ помогает выделять слова в предложениях, а __жирный текст__ используется для акцентирования на важных фразах.\n\n# Вложенные элементы\n\nКроме этого, необходимо проверять, как работает парсер с _вложенными_ тегами. Например, вот так: __жирный _и курсив_ в одном предложении__.\n\nТакже стоит протестировать парсер на больших объемах текста, чтобы убедиться, что __он не замедляется__ при обработке длинных строк. Оптимизация работы парсера очень важна, так как это напрямую влияет на производительность программы.\n\n# Тестирование производительности\n\nВот пример длинного текста с большим количеством тегов для проверки производительности:\n\n__Это жирный текст__, а вот _курсивный текст_, который используется для различных тестов. Продолжаем добавлять больше текста, чтобы создать нагрузку на парсер. Проверяем, как _курсив_ и __жирный__ текст взаимодействуют друг с другом.\n\nТеперь давайте добавим еще больше текста, чтобы убедиться, что парсер справляется с обработкой длинных строк. Мы будем добавлять теги _курсива_ и __жирного текста__, чтобы увидеть, как они работают вместе.\n\n__Жирный текст__ должен обрабатываться правильно, как и _курсивный текст_. Это важно, потому что парсер должен работать с множеством символов и тегов одновременно. Важно убедиться, что программа не начинает __замедляться__ или _падать_ на больших данных.\n\n# Заключение\n\nПарсеры MarkdownProcessor используются в самых разных проектах, от генерации веб-страниц до редактирования текстов в блогах. Тестирование парсера на различных входных данных позволяет убедиться в его стабильности и производительности. __Жирный текст__ и _курсивный текст_ помогают создавать более выразительный контент, и важно, чтобы парсер корректно обрабатывал эти элементы. Это ссылка на [Google](https://www.google.com \"Тройные кавычки\") ";
         string str15 =
             "# Header";
-
         
-
-        string test = "I am _freaky_ with __a _BIG BLACK COCKS_ a__";
+        string test = "[w](https://google.com)";
+        string test1 = "[a](https://google.com)";
         
         var stopwatch1 = new Stopwatch();
         stopwatch1.Start();
-
-        
-        
         
         var ital = new ItalicsTag();
         var bold = new BoldTag();
@@ -126,6 +62,7 @@ class Program
 
         Console.WriteLine(test.Length);
         Console.WriteLine(mdProc.ParseAndRender(test));
+        Console.WriteLine(mdProc.ParseAndRender(test1));
         stopwatch1.Stop();
         Console.WriteLine(resu);
 

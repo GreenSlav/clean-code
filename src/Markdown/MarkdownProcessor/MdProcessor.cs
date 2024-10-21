@@ -28,7 +28,16 @@ public class MdProcessor
         // Очищаем список токенов перед парсингом и рендером
         _tokens = _parser.Parse(textToParse, _parser.TagsToParse);
         string resultOfRender = _renderer.RenderMarkdown(_tokens, textToParse);
+        ResetTagParameters();
 
         return resultOfRender;
+    }
+
+    private void ResetTagParameters()
+    {
+        foreach (var tag in _parser.TagsToParse)
+        {
+           tag.ResetParameters(); 
+        }
     }
 }

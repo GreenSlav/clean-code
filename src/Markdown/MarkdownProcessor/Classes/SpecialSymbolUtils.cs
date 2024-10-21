@@ -60,6 +60,11 @@ public static class SpecialSymbolUtils
     {
         // Определяем, открывающий ли это символ, в зависимости от контекста
         // Например, можно проверять, что нет открытой пары для символа этого типа в стеке
+        if (!symbol.IsPairedTag)
+        {
+            return !symbol.IsClosingTag;
+        }
+        
         bool openedTagBefore = false;
 
         for (int i = stack.Count - 1; i >= 0; i--)

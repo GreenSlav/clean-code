@@ -4,7 +4,7 @@ using MarkdownProcessor.Structs;
 
 namespace MarkdownProcessor.Interfaces;
 
-public interface ITag
+public interface ITag: IResetTag
 {
     string Symbol { get; }
     bool IsPaired { get; }

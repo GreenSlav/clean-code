@@ -139,6 +139,7 @@ public struct Link : ITag
                                 Type = TokenType.Link, Index = index, TagLength = 1, IsPairedTag = true,
                                 IsClosingTag = true
                             });
+                            IsOpened = false;
                             //++index;
                             return true;
                         }
@@ -212,5 +213,11 @@ public struct Link : ITag
         }
         
         return false;
+    }
+
+    public void ResetParameters()
+    {
+        IsOpened = false;
+        CurrentString = String.Empty;
     }
 }

@@ -100,4 +100,9 @@ public struct HeaderTag: ITag
 
         return spaceAfterSharp && firstTagIsOpening && lastTagIsClosing && isLongEnough;
     }
+
+    public void ResetParameters()
+    {
+        IsOpenedHeader = false;
+    }
 }

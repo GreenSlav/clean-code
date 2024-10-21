@@ -65,4 +65,9 @@ public struct ItalicsTag: ITag
         return noSpareSpaces && distanceBetweenStartAndEndMoreThanZero &&
                isWithinOneWord && !IsDigitAmongWord;
     }
+
+    public void ResetParameters()
+    {
+        
+    }
 }
