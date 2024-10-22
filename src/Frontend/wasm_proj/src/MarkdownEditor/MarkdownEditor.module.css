@@ -1,3 +1,28 @@
-button {
+.input {
     margin-top: 15px;
+}
+
+.input {
+    letter-spacing: 1px;
+    border: none;             /* Убираем рамку */
+    box-shadow: 1px 1px 10px #000;
+    padding: 5px;
+    outline: none;            /* Убираем обводку при фокусе */
+    background: none;         /* Убираем фон */
+    color: inherit;           /* Устанавливаем цвет текста как у родительского элемента */
+    font: inherit;            /* Устанавливаем шрифт как у родительского элемента */
+    /* Убираем тени */
+    appearance: none;
+    height: 15vh;
+    width: 30vw;
+    font-size: 1em;
+    resize: none;
+    overflow: auto;           /* Включаем прокрутку, если текст выходит за границы */
+    text-align: center;
+    border-radius: 10px;
+}
+
+/* Скрытие полосы прокрутки для всех браузеров */
+.input::-webkit-scrollbar {
+    display: none; /* Для Chrome, Safari и других браузеров на движке WebKit */
 }

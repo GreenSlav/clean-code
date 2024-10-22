@@ -1,10 +1,31 @@
 using System.Text;
+using MarkdownProcessor.Enums;
+using MarkdownProcessor.Interfaces;
 using MarkdownProcessor.Structs;
 
 namespace MarkdownProcessor.Classes;
 
 public static class SpecialSymbolUtils
 {
+    public static bool IsOpenedHeader { get; set; }
+    
+    public static bool CheckForUnclosedHeaderTag(string sourceString, List<SpecialSymbol> specialSymbols)
+    {
+        // Надо будет по красивее сделать, а то повторение кода
+        // Этот if предусматривает случай, когда header был открыт,
+        // но последним символом в исходной строке был какой-то специальный символ
+        // и надо бы header закрыть, чтобы превратить его в токен
+        if (IsOpenedHeader)
+        {
+            specialSymbols.Add(new SpecialSymbol { Type = TokenType.Header, Index = sourceString.Length - 1, TagLength = 1, IsPairedTag = false, IsClosingTag = true });
+            IsOpenedHeader = false;
+            
+            return true;
+        }
+
+        return false;
+    }
+    
     public static bool IsWithinOneWord(string src, SpecialSymbol openingTag, SpecialSymbol closingTag)
     {
         bool containsSpace = src.Substring(openingTag.Index + openingTag.TagLength,
@@ -216,5 +237,54 @@ public static class SpecialSymbolUtils
 
 
         return wordWithinNumbers;
+    }
+
+    public static TokenType FirstItalicsOrBold(List<ITag> tags)
+    {
+        foreach (var tag in tags)
+        {
+            switch (tag.TokenType)
+            {
+                case TokenType.Bold:
+                    return tag.TokenType;
+                case TokenType.Italics:
+                    return tag.TokenType;
+            }
+        }
+        
+        throw new Exception("Italics or Bold tag not found");
+    }
+    
+    public static void SwapItalicsAndBold(List<ITag> tags)
+    {
+        var firstEncounter = FirstItalicsOrBold(tags);
+        
+        // Найдем индексы тегов с типом Italics и Bold
+        int italicsIndex = -1;
+        int boldIndex = -1;
+
+        for (int i = 0; i < tags.Count; i++)
+        {
+            if (tags[i].TokenType == TokenType.Italics)
+            {
+                italicsIndex = i;
+            }
+            else if (tags[i].TokenType == TokenType.Bold)
+            {
+                boldIndex = i;
+            }
+
+            // Если оба индекса найдены, можем завершить поиск
+            if (italicsIndex != -1 && boldIndex != -1)
+            {
+                break;
+            }
+        }
+
+        // Если оба индекса найдены, меняем элементы местами
+        if (italicsIndex != -1 && boldIndex != -1 && firstEncounter == TokenType.Italics)
+        {
+            (tags[italicsIndex], tags[boldIndex]) = (tags[boldIndex], tags[italicsIndex]);
+        }
     }
 }

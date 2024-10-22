@@ -1,3 +1,4 @@
+using MarkdownProcessor.Classes;
 using MarkdownProcessor.Enums;
 using MarkdownProcessor.Interfaces;
 
@@ -9,12 +10,11 @@ public struct HeaderTag: ITag
     public bool IsPaired { get; }
     public TokenType TokenType { get; }
     public TokenType[] TagsCanBeInside { get; }
-    public string[] Pattern { get; }
 
     //  По сути можем сделать статическим, ведь параллелить навряд ли будем
     // Да и тем более его все же наврн лучше сделать статическим, чтоб другие header'ы могли
     // тоже его состояние отслеживать
-    public static bool IsOpenedHeader { get; private set; }
+    public bool IsOpened { get; set; }
 
     public HeaderTag()
     {
@@ -22,7 +22,6 @@ public struct HeaderTag: ITag
         IsPaired = false;
         TokenType = TokenType.Header;
         TagsCanBeInside = [TokenType.Text, TokenType.Italics, TokenType.Link, TokenType.Bold];
-        Pattern = ["#", "\n"];
     }
 
     public void ValidateInsideTokens(Token token, string sourceString)
@@ -36,7 +35,8 @@ public struct HeaderTag: ITag
             // чтобы header сработал
         {
             specialSymbols.Add(new SpecialSymbol { Type = TokenType.Header, Index = index, TagLength = 1, IsPairedTag = false, IsClosingTag = false});
-            IsOpenedHeader = true;
+            IsOpened = true;
+            SpecialSymbolUtils.IsOpenedHeader = true;
             //++index;
             
             return true;
@@ -55,7 +55,7 @@ public struct HeaderTag: ITag
         // Поэтому теперь закр. тегом будет считать символ до переноса на новую строку
         // и конец строки, если header был открыт
         // Проверка индекс нужно, чтоб понять, где-то выше при инкрементировании не улетели ли мы за пределы
-        if (index < sourceString.Length && sourceString[index] == '\n' && IsOpenedHeader)
+        if (index < sourceString.Length && sourceString[index] == '\n' && IsOpened)
         {
             if (sourceString[index] == '\n')
             {
@@ -63,7 +63,8 @@ public struct HeaderTag: ITag
                 {
                     Type = TokenType.Header, Index = index - 1, TagLength = 1, IsPairedTag = false, IsClosingTag = true
                 });
-                IsOpenedHeader = false;
+                IsOpened = false;
+                SpecialSymbolUtils.IsOpenedHeader = false;
                 //++index;
 
                 return true;
@@ -72,24 +73,6 @@ public struct HeaderTag: ITag
         
         return false;
     }
-
-    public static bool CheckForUnclosedHeaderTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols)
-    {
-        // Надо будет по красивее сделать, а то повторение кода
-        // Этот if предусматривает случай, когда header был открыт,
-        // но последним символом в исходной строке был какой-то специальный символ
-        // и надо бы header закрыть, чтобы превратить его в токен
-        if (index >= sourceString.Length - 1 && IsOpenedHeader)
-        {
-            specialSymbols.Add(new SpecialSymbol { Type = TokenType.Header, Index = sourceString.Length - 1, TagLength = 1, IsPairedTag = false, IsClosingTag = true });
-            IsOpenedHeader = false;
-            
-            return true;
-        }
-
-        return false;
-    }
-    
 
     public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol)
     {
@@ -103,6 +86,7 @@ public struct HeaderTag: ITag
 
     public void ResetParameters()
     {
-        IsOpenedHeader = false;
+        IsOpened = false;
+        SpecialSymbolUtils.IsOpenedHeader = false;
     }
 }

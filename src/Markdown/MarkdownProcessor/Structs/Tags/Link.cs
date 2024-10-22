@@ -10,8 +10,7 @@ public struct Link : ITag
     public bool IsPaired { get; }
     public TokenType TokenType { get; }
     public TokenType[] TagsCanBeInside { get; }
-    public string[] Pattern { get; }
-    public bool IsOpened { get; private set; }
+    public bool IsOpened { get; set; }
 
     // Здесь отслеживаем как в данный момент выглядит символ
     // Пример: "[](", "["
@@ -23,7 +22,6 @@ public struct Link : ITag
         IsPaired = true;
         TokenType = TokenType.Link;
         TagsCanBeInside = [TokenType.Text, TokenType.Italics, TokenType.Bold];
-        Pattern = ["[", "]", "(", ")"];
         CurrentString = string.Empty;
     }
 

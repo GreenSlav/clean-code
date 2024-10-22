@@ -49,13 +49,13 @@ const MarkdownEditor = () => {
 
     return (
         <div>
+            <div dangerouslySetInnerHTML={{__html: htmlOutput}}/>
             <textarea
+                className={classes.input}
                 value={markdownText}
                 onChange={(e) => setMarkdownText(e.target.value)}
                 placeholder="Введите ваш Markdown"
             />
-            <div dangerouslySetInnerHTML={{ __html: htmlOutput }} />
-            <button onClick={processMarkdown}>Преобразовать</button>
         </div>
     );
 };

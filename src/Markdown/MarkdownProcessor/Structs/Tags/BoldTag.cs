@@ -10,7 +10,7 @@ public struct BoldTag: ITag
     public bool IsPaired { get; }
     public TokenType TokenType { get; }
     public TokenType[] TagsCanBeInside { get; }
-    public string[] Pattern { get; }
+    public bool IsOpened { get; set; }
 
 
     public BoldTag()
@@ -19,7 +19,6 @@ public struct BoldTag: ITag
         IsPaired = true;
         TokenType = TokenType.Bold;
         TagsCanBeInside = [TokenType.Text, TokenType.Italics, TokenType.Link];
-        Pattern = ["__", "__"];
     }
 
     public void ValidateInsideTokens(Token token, string sourceString)
@@ -31,8 +30,13 @@ public struct BoldTag: ITag
     {
         if (index < sourceString.Length - 1 && sourceString.Substring(index, 2) == "__")
         {
+            // Даем шанс прочитать этот символ курсиву
+            if (IsOpened && index < sourceString.Length - 2 && sourceString.Substring(index, 3) == "___")
+                return false;
+            
+            
             specialSymbols.Add(new SpecialSymbol { Type = TokenType.Bold, Index = index, TagLength = 2, IsPairedTag = true });
-            //index += 2;
+            IsOpened = !IsOpened;
             return true;
         }
 
@@ -68,6 +72,6 @@ public struct BoldTag: ITag
 
     public void ResetParameters()
     {
-        
+        IsOpened = false;
     }
 }

@@ -18,6 +18,9 @@ public class StringParser: IParser
     // В контексте данного класса строка textToBeMarkdown - строка, которую нужно превратить в html
     public List<Token> Parse(string textToBeMarkdown, List<ITag> tagsToParse)
     {
+        // Проверка, что сначала идет Bold, а потом Italics
+        SpecialSymbolUtils.SwapItalicsAndBold(tagsToParse);
+        
         var listOfSpecialSymbols = new List<SpecialSymbol>();
         var openSymbolsStack = new List<SpecialSymbol>();
         // Главный токен, то что будет содержать в себе весь контент строки
@@ -38,21 +41,22 @@ public class StringParser: IParser
             {
                 continue;
             }
-
-            var ch = textToBeMarkdown[i];
+            
             foreach (var tag in tagsToParse)
             {
                 // Пытаемся проверить текущий символ на специальность, если текущий индекс еще не занят
                 // каким-то специальным символом
-                if (listOfSpecialSymbols.Count == 0 
-                    || (listOfSpecialSymbols.Count > 0 
+                if (listOfSpecialSymbols.Count == 0
+                    || (listOfSpecialSymbols.Count > 0
                         && listOfSpecialSymbols[^1].Index + listOfSpecialSymbols[^1].TagLength - 1 < i))
+                {
                     tag.CheckSymbolForTag(textToBeMarkdown, ref i, listOfSpecialSymbols);
+                }
             }
-            
-            // Проверяем, не осталось ли незакрытого заголовка
-            HeaderTag.CheckForUnclosedHeaderTag(textToBeMarkdown, ref i, listOfSpecialSymbols);
         }
+        
+        // Проверяем, не осталось ли незакрытого заголовка
+        SpecialSymbolUtils.CheckForUnclosedHeaderTag(textToBeMarkdown, listOfSpecialSymbols);
         
         
         for (int i = 0; i < listOfSpecialSymbols.Count; i++)

@@ -10,7 +10,7 @@ public struct ItalicsTag: ITag
     public bool IsPaired { get; }
     public TokenType TokenType { get; }
     public TokenType[] TagsCanBeInside { get; }
-    public string[] Pattern { get; }
+    public bool IsOpened { get; set; }
 
     public ItalicsTag()
     {
@@ -18,7 +18,6 @@ public struct ItalicsTag: ITag
         IsPaired = true;
         TokenType = TokenType.Italics;
         TagsCanBeInside = [TokenType.Text, TokenType.Link];
-        Pattern = ["_", "_"];
     }
 
     public void ValidateInsideTokens(Token token, string sourceString)
@@ -32,8 +31,7 @@ public struct ItalicsTag: ITag
         {
             specialSymbols.Add(new SpecialSymbol
                 { Type = TokenType.Italics, Index = index, TagLength = 1, IsPairedTag = true });
-            //++index;
-
+            IsOpened = !IsOpened;            
             return true;
         }
 
@@ -68,6 +66,6 @@ public struct ItalicsTag: ITag
 
     public void ResetParameters()
     {
-        
+        IsOpened = false;
     }
 }

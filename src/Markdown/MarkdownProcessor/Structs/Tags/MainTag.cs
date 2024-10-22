@@ -10,7 +10,7 @@ public struct MainTag: ITag
     public bool IsPaired { get; }
     public TokenType TokenType { get; }
     public TokenType[] TagsCanBeInside { get; }
-    public string[] Pattern { get; }
+    public bool IsOpened { get;  set; }
 
     public MainTag()
     {
@@ -18,7 +18,6 @@ public struct MainTag: ITag
         IsPaired = true;
         TokenType = TokenType.Main;
         TagsCanBeInside = [TokenType.Text, TokenType.Italics, TokenType.Link, TokenType.Bold, TokenType.Header];
-        Pattern = [];
     }
 
     public void ValidateInsideTokens(Token token, string sourceString)
@@ -38,6 +37,6 @@ public struct MainTag: ITag
 
     public void ResetParameters()
     {
-        
+        IsOpened = false;
     }
 }
