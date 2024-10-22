@@ -1,6 +1,4 @@
 @MdProcessor_HostAddress = http://localhost:5199
 
-GET {{MdProcessor_HostAddress}}/weatherforecast/
-Accept: application/json
 
 ###

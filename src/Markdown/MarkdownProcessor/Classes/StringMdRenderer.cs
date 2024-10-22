@@ -6,7 +6,7 @@ using MarkdownProcessor.Structs;
 
 namespace MarkdownProcessor.Classes;
 
-public class ConsoleMdRenderer: IRenderer
+public class StringMdRenderer: IRenderer
 {
     public string RenderMarkdown(List<Token> tokens, string sourceString)
     {
@@ -52,7 +52,7 @@ public class ConsoleMdRenderer: IRenderer
                 sb.Append(RenderLink(token, sourceString));
                 break;
             case TokenType.Text:
-                sb.Append(SpecialSymbolUtils.GetEscapedText(content));
+                sb.Append(SpecialSymbolUtils.GetEscapedText(content).Replace("\n\n", "<br/>"));
                 break;
         }
         

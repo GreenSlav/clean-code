@@ -28,7 +28,7 @@ public class MarkdownProcessorTest
         list.Add(header);
         list.Add(main);
         
-        _markdownProcessor = new MdProcessor(new StringParser(list), new ConsoleMdRenderer());
+        _markdownProcessor = new MdProcessor(new StringParser(list), new StringMdRenderer());
     }
     
     [Theory]

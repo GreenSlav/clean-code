@@ -8,6 +8,18 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Разрешение CORS с указанием доверенного источника
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Указываем доверенный источник
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // Разрешаем передачу учетных данных
+    });
+});
+
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
 // Добавляем контекст базы данных
@@ -18,7 +30,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers();
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -33,12 +44,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Включаем CORS
+app.UseCors("AllowSpecificOrigin");
+
+// Подача статических файлов
+app.UseStaticFiles(); // Это позволит обслуживать файлы из папки wwwroot
+
 app.UseRouting();
+
+app.UseAuthorization();
    
 // Настройка эндпоинтов
 app.UseEndpoints(endpoints =>
 {
-   endpoints.MapControllers();
+    endpoints.MapControllers();
 });
 
 app.Run();

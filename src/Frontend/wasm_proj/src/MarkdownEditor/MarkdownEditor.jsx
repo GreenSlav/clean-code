@@ -9,12 +9,12 @@ const MarkdownEditor = () => {
     useEffect(() => {
         const loadBlazor = async () => {
             try {
-                await import('http://localhost:8080/_framework/blazor.webassembly.js');
+                await import('http://localhost:5199/api/Blazor/resource/blazor.webassembly.js');
 
                 // Настройка загрузки ресурсов Blazor
                 await window.Blazor.start({
                     loadBootResource: (type, name, defaultUri, integrity) => {
-                        return `http://localhost:8080/_framework/${name}`;
+                        return `http://localhost:5199/api/Blazor/resource/${name}`;
                     }
                 }).then(() => {
                     console.log('Blazor WebAssembly инициализирован');

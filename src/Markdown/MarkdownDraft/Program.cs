@@ -40,7 +40,7 @@ class Program
         string str15 =
             "# Header";
         //string test = "[w](https://google.com)";
-        string test = "__dwada _dwada adawd__ wdad_";
+        string test = "# dadadwa\\\nwdadad\n";
         
         var stopwatch1 = new Stopwatch();
         stopwatch1.Start();
@@ -56,7 +56,7 @@ class Program
         list.Add(link);
         list.Add(header);
         list.Add(main);
-        var mdProc = new MdProcessor(new StringParser(list), new ConsoleMdRenderer());
+        var mdProc = new MdProcessor(new StringParser(list), new StringMdRenderer());
         var resu = stopwatch1.Elapsed;
 
         Console.WriteLine(test.Length);

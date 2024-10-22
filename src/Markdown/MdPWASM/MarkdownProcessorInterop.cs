@@ -21,7 +21,7 @@ namespace MarkdownProcessorWasm
             var main = new MainTag();
             var list = new List<ITag> { bold, ital, link, header, main };
 
-            _markdownProcessor = new MdProcessor(new StringParser(list), new ConsoleMdRenderer());
+            _markdownProcessor = new MdProcessor(new StringParser(list), new StringMdRenderer());
         }
         
         [JSInvokable]
