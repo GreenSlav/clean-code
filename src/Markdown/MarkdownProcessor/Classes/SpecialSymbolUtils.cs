@@ -171,9 +171,12 @@ public static class SpecialSymbolUtils
         bool containsAllNumbers = subString.All(c => char.IsDigit(c));
 
         // Проверяем, что наше выделение является числом и рядом нет никаких других символов
-        bool leftIsSpaceOrEnd = openingSymbol.Index - 1 < 0 || sourceString[openingSymbol.Index - 1] == ' ';
-        bool rightIsSpaceOrEnd = closingSymbol.Index + closingSymbol.TagLength >= sourceString.Length || 
-                                 sourceString[closingSymbol.Index + closingSymbol.TagLength] == ' ';
+        bool leftIsSpaceOrEnd = openingSymbol.Index - 1 < 0 
+                                || sourceString[openingSymbol.Index - 1] == ' ' 
+                                || sourceString[openingSymbol.Index - 1] == '\n';
+        bool rightIsSpaceOrEnd = closingSymbol.Index + closingSymbol.TagLength >= sourceString.Length 
+                                 || sourceString[closingSymbol.Index + closingSymbol.TagLength] == ' ' 
+                                 || sourceString[closingSymbol.Index + closingSymbol.TagLength] == '\n';
 
         // Случаи когда выделяем целое число, которое не входит ни в какое слово
         if (containsAllNumbers && leftIsSpaceOrEnd && rightIsSpaceOrEnd)
@@ -192,8 +195,8 @@ public static class SpecialSymbolUtils
                 if (char.IsDigit(subString[i]))
                 {
                     // Если внутри тега и встречается цифры, то они должны быть отдельны от букв (слов)
-                    if (!((i - 1 < 0 || subString[i - 1] == ' ' || char.IsDigit(subString[i - 1])) &&
-                        i + 1 >= subString.Length || subString[i + 1] == ' ' || char.IsDigit(subString[i + 1])))
+                    if (!((i - 1 < 0 || subString[i - 1] == ' ' || subString[i - 1] == '\n' || char.IsDigit(subString[i - 1])) &&
+                        i + 1 >= subString.Length || subString[i + 1] == ' ' || subString[i + 1] == '\n' || char.IsDigit(subString[i + 1])))
                         numbersAmongWordInside = true;
                     break;
                 }
@@ -203,6 +206,7 @@ public static class SpecialSymbolUtils
         if (numbersAmongWordInside)
             return true;
             
+        // __React__:\n1)
         // Но может быть ситуация: "_ццц_ц1"
         // Остается найти в текущем слове цифры
         int leftIndex = openingSymbol.Index - 1;
@@ -221,14 +225,18 @@ public static class SpecialSymbolUtils
             {
                 if (char.IsDigit(sourceString[leftIndex]))
                     wordWithinNumbers = true;
-                encounteredSpaceFromLeft = sourceString[leftIndex] == ' ';
+                
+                // Чтобы избежать изменения этого значения, когда мы уже до этого достигли пробел, чтоб не забыть это
+                if (!encounteredSpaceFromLeft)
+                    encounteredSpaceFromLeft = sourceString[leftIndex] == ' ' || sourceString[leftIndex] == '\n';
             }
             
             if (rightIndex < sourceString.Length)
             {
                 if (char.IsDigit(sourceString[rightIndex]))
                     wordWithinNumbers = true;
-                encounteredSpaceFromRight = sourceString[rightIndex] == ' ';
+                if (!encounteredSpaceFromRight)
+                    encounteredSpaceFromRight = sourceString[rightIndex] == ' ' || sourceString[rightIndex] == '\n';
             }
             
             --leftIndex;

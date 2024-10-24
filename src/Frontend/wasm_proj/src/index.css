@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box; /* Добавляем это свойство */
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -66,4 +70,21 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+html, body {
+  overflow-x: hidden; /* Отключаем горизонтальную прокрутку */
+  margin: 0; /* Убираем возможные отступы */
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow-y: hidden;
+  box-sizing: border-box; /* Добавляем это свойство */
+}
+
+#root {
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
 }
