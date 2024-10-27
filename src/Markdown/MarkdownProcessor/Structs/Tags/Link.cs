@@ -153,7 +153,7 @@ public struct Link : ITag
         return false;
     }
 
-    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol)
+    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol, List<SpecialSymbol> specialSymbols)
     {
         string subString = sourceString.Substring(openingSymbol.Index, closingSymbol.Index - openingSymbol.Index + 1);
 

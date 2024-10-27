@@ -74,7 +74,7 @@ public struct HeaderTag: ITag
         return false;
     }
 
-    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol)
+    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol, List<SpecialSymbol> specialSymbols)
     {
         bool spaceAfterSharp = (openingSymbol.Index + 1) < sourceString.Length && sourceString[openingSymbol.Index + 1] == ' ';
         bool firstTagIsOpening = openingSymbol.IsClosingTag == false;

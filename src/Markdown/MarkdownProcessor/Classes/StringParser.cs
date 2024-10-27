@@ -70,9 +70,7 @@ public class StringParser: IParser
             }
             else
             {
-                // Здесь мы пытаемся найти закрывающий символ
-                // По сути если мы попали в это ветвление, то открывающий тег точно есть
-                // по этому ищем его и удаляем вложенность в закрывающемся теге
+                
 
                 // Пришел инициализировать здесь, а то внизу там при инициализации токена мозги делают
                 SpecialSymbol openingSymbol = new SpecialSymbol();
@@ -92,13 +90,16 @@ public class StringParser: IParser
                             {
                                 // Тут будет проверяться корректность потенциального токена перед его созданием
                                 // Типо пробел после header'а, его отсутствие после открывающего "_" и тд
-                                bool isValidPair = tag.ValidatePairOfTags(textToBeMarkdown, openSymbolsStack[j], symbol);
+                                bool isValidPair = tag.ValidatePairOfTags(textToBeMarkdown, openSymbolsStack[j], symbol, openSymbolsStack);
 
                                 if (isValidPair)
                                 {
                                     openingSymbol = openSymbolsStack[j];
-                                    openSymbolsStack.RemoveAt(j);
-                                }
+                                    // Удаляем все элементы на пути к открывающему тегу
+                                    for (int s = openSymbolsStack.Count - 1; s >= j; s--)
+                                    {
+                                        openSymbolsStack.RemoveAt(s);
+                                    }                                }
                                 else
                                 {
                                     // Теги не прошли условия
@@ -117,9 +118,12 @@ public class StringParser: IParser
 
                         if (exitCurrentLoop)
                             break;
-                        
-                        // Удаляем все элементы на пути к открывающему тегу
-                        openSymbolsStack.RemoveAt(openSymbolsStack.Count - 1);
+                    }
+                    else
+                    {
+                        // Текущий символ не подошел на пути к поиску пары для закрывающего, удаляем его
+                        // тк как он не успел найти свою пару
+                        //openSymbolsStack.RemoveAt();
                     }
                 }
                     

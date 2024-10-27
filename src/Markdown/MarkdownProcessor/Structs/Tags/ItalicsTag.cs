@@ -38,7 +38,7 @@ public struct ItalicsTag: ITag
         return false;
     }
 
-    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol)
+    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol, List<SpecialSymbol> specialSymbols)
     {
         // Если все условия выполнены, выходим из цикла, запоминаем 
         // символов надо удалить из стека, чтоб добраться до этого символ,

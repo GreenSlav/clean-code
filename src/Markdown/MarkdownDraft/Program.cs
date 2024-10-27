@@ -40,7 +40,7 @@ class Program
         string str15 =
             "# Header";
         //string test = "[w](https://google.com)";
-        string test = "# dadadwa\\\nwdadad\n";
+        string test = "__bold italics___";
         
         var stopwatch1 = new Stopwatch();
         stopwatch1.Start();

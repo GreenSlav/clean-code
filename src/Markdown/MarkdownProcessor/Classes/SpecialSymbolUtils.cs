@@ -93,9 +93,8 @@ public static class SpecialSymbolUtils
             if (stack[i].Type == symbol.Type)
             {
                 openedTagBefore = true;
+                break;
             }
-
-            break;
         }
         
         // Проверяем, что стек может быть нулевым, до этого нигде этот открывающийся стек не встречался

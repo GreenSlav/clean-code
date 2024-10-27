@@ -15,5 +15,5 @@ public interface ITag: IResetTag
     bool IsOpened { get; set; }
     void ValidateInsideTokens(Token token, string sourceString);
     bool CheckSymbolForTag(string sourceString, ref int index, List<SpecialSymbol> specialSymbols);
-    bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol);
+    bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol, List<SpecialSymbol> specialSymbols);
 }

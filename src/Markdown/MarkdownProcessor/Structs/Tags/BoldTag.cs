@@ -43,17 +43,27 @@ public struct BoldTag: ITag
         return false;
     }
 
-    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol)
+    public bool ValidatePairOfTags(string sourceString, in SpecialSymbol openingSymbol, in SpecialSymbol closingSymbol, List<SpecialSymbol> specialSymbolsStack)
     {
+        var symbolOpen = openingSymbol;
+        var symbolClose = closingSymbol;
+        var openingSymbolIndex = specialSymbolsStack.FindIndex(x => x.Index == symbolOpen.Index);
+        var closingSymbolIndex = specialSymbolsStack.FindIndex(x => x.Index == symbolClose.Index);
+        bool unClosedItalicsBetween = specialSymbolsStack
+            .Where((ss, i) => i > openingSymbolIndex && i < closingSymbolIndex && ss.Type == TokenType.Italics).Any();
         // Если все условия выполнены, выходим из цикла, запоминаем 
         // символов надо удалить из стека, чтоб добраться до этого символ,
         // удаляем из стека эти символы, и готово - у нас есть правильный токен
         // Создаем его
-                            
+        
         // openSymbolsStack[j] - открывающий
         // symbol - закрывающий
         // После открывающего и перед закрывающим нет пробела
-
+        // Проверяем что если и есть внутри 
+        // Левое безсполезное
+        //bool noCrossingItalicsOnTheLeft = openingSymbolIndex <= 0 || (specialSymbolsStack[openingSymbolIndex - 1].Type != TokenType.Italics && specialSymbolsStack[openingSymbolIndex - 1].IsClosingTag);
+        //bool noCrossingItalicsOnTheRight = closingSymbolIndex >= specialSymbolsStack.Count - 1 || (specialSymbolsStack[closingSymbolIndex + 1].Type != TokenType.Italics && !specialSymbolsStack[openingSymbolIndex + 1].IsClosingTag);
+        
         bool noSpareSpaces =
             sourceString[openingSymbol.Index + openingSymbol.TagLength] != ' ' &&
             sourceString[closingSymbol.Index - 1] != ' ';
@@ -64,10 +74,12 @@ public struct BoldTag: ITag
         bool isWithinOneWord = SpecialSymbolUtils.IsWithinOneWord(sourceString, openingSymbol, closingSymbol);
 
 
-        bool IsDigitAmongWord = SpecialSymbolUtils.IsDigitAmongWord(sourceString, openingSymbol, closingSymbol);
+        bool isDigitAmongWord = SpecialSymbolUtils.IsDigitAmongWord(sourceString, openingSymbol, closingSymbol);
 
-        return noSpareSpaces && distanceBetweenStartAndEndMoreThanZero &&
-                isWithinOneWord && !IsDigitAmongWord;
+        return noSpareSpaces && distanceBetweenStartAndEndMoreThanZero
+                             && isWithinOneWord
+                             && !isDigitAmongWord;
+        //&& (unClosedItalicsBetween && noCrossingItalicsOnTheRight || !unClosedItalicsBetween);
     }
 
     public void ResetParameters()
