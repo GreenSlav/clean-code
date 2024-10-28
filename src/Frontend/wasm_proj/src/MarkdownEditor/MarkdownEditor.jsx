@@ -6,14 +6,18 @@ const MarkdownEditor = () => {
     const [htmlOutput, setHtmlOutput] = useState('');
     const [dividerX, setDividerX] = useState(50);
     const [isDragging, setIsDragging] = useState(false);
+    const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL;
+
+
 
     useEffect(() => {
         const loadBlazor = async () => {
             try {
-                await import('http://localhost:5199/api/Blazor/resource/blazor.webassembly.js');
+                console.log(backendUrl)
+                await import(`${backendUrl}/api/Blazor/resource/blazor.webassembly.js`);
                 await window.Blazor.start({
                     loadBootResource: (type, name, defaultUri, integrity) => {
-                        return `http://localhost:5199/api/Blazor/resource/${name}`;
+                        return `${backendUrl}/api/Blazor/resource/${name}`;
                     }
                 }).then(() => {
                     console.log('Blazor WebAssembly initialized');
@@ -27,6 +31,7 @@ const MarkdownEditor = () => {
 
         loadBlazor();
     }, []);
+
 
     const processMarkdown = async () => {
         try {

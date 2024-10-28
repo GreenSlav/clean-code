@@ -9,16 +9,21 @@ Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // Разрешение CORS с указанием доверенного источника
+var frontendUrl = Environment.GetEnvironmentVariable("ASPNETCORE_URLS"); //?? "http://localhost:3000"; // Используйте правильный URL
+Console.WriteLine("---------- " + frontendUrl);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Указываем доверенный источник
+        policy.WithOrigins(/*frontendUrl,*/ "http://frontend:80") // Добавьте необходимый URL
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // Разрешаем передачу учетных данных
+            .AllowCredentials();
     });
 });
+
+
 
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
@@ -35,12 +40,12 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// // Configure the HTTP request pipeline.
+// if (app.Environment.IsDevelopment())
+// {
+//     app.UseSwagger();
+//     app.UseSwaggerUI();
+// }
 
 app.UseHttpsRedirection();
 

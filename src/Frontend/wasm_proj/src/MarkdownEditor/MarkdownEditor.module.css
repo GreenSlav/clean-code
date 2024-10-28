@@ -18,6 +18,7 @@
     width: 100%;
     overflow: auto; /* Разрешаем прокрутку */
     overflow-x: hidden;
+    overflow-y: hidden;
     padding: 20px 1px 20px 20px;
 }
 

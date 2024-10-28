@@ -629,6 +629,12 @@
       <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\WindowsBase.wasm" />
       <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\WindowsBase.wasm.br" />
       <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\WindowsBase.wasm.gz" />
+      <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\dotnet.native.8.0.8.4h8h2rczsw.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\dotnet.native.8.0.8.4h8h2rczsw.js.br" />
+      <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\dotnet.native.8.0.8.4h8h2rczsw.js.gz" />
+      <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\dotnet.runtime.8.0.8.caduq9ao4c.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\dotnet.runtime.8.0.8.caduq9ao4c.js.br" />
+      <_ContentIncludedByDefault Remove="wwwroot\wwwroot\_framework\dotnet.runtime.8.0.8.caduq9ao4c.js.gz" />
     </ItemGroup>
 
     <ItemGroup>
