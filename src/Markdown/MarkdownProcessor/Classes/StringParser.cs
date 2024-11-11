@@ -19,7 +19,7 @@ public class StringParser: IParser
     public List<Token> Parse(string textToBeMarkdown, List<ITag> tagsToParse)
     {
         // Проверка, что сначала идет Bold, а потом Italics
-        SpecialSymbolUtils.SwapItalicsAndBold(tagsToParse);
+        SpecialSymbolUtils.InitialSwapItalicsAndBold(tagsToParse);
         
         var listOfSpecialSymbols = new List<SpecialSymbol>();
         var openSymbolsStack = new List<SpecialSymbol>();

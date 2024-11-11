@@ -259,10 +259,12 @@ public static class SpecialSymbolUtils
             }
         }
         
-        throw new Exception("Italics or Bold tag not found");
+        // Ничего не нашли, да и фиг с ним
+        return TokenType.Bold;
     }
     
-    public static void SwapItalicsAndBold(List<ITag> tags)
+    // Метод для первоначального упорядовачивания тегов, предоставленных к парсингу
+    public static void InitialSwapItalicsAndBold(List<ITag> tags)
     {
         var firstEncounter = FirstItalicsOrBold(tags);
         

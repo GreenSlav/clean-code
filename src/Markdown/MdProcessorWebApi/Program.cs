@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins(/*frontendUrl,*/ "http://frontend:80") // Добавьте необходимый URL
+        policy.WithOrigins(/*frontendUrl,*/ "http://frontend:80", "http://localhost:3000", "http://127.0.0.1:3000") // Добавьте необходимый URL
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
