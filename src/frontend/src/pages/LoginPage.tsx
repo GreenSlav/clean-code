@@ -22,7 +22,7 @@ const Block = styled.div`
     background-color: #0d2122; /* Внутренний блок с акцентным фоном */
     justify-content: center;
     align-items: center;
-    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 `;
 
 const Title = styled.h1`
@@ -62,7 +62,7 @@ const Button = styled.button`
     &:hover {
         color: white;
         background-color: #0d2122; /* Более насыщенный акцентный цвет */
-        box-shadow: 0 0 40px #14b7a6;
+        box-shadow: 0 0 20px #14b7a6;
     }
 
     &:active {

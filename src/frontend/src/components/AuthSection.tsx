@@ -28,7 +28,7 @@ const Button = styled.button`
     &:hover {
         color: white;
         background-color: #0d2122; /* Более насыщенный акцентный цвет */
-        box-shadow: 0 0 40px #14b7a6;
+        box-shadow: 0 0 20px #14b7a6;
     }
 
     &:active {

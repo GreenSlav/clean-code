@@ -14,19 +14,20 @@ const TypingWrapper = styled.div`
     white-space: normal; /* Разрешить перенос строк */
 `;
 
-
 const Typing: React.FC = () => {
     return (
         <TypingWrapper>
             <TypeAnimation
                 sequence={[
-                    "Let's write some MD?", // Текст для печати
-                    3500, // Пауза на 1 секунду
-                    'Sign in or sign up!', // Добавляем точку
+                    "Let's write some M⬇?", // Текст для печати
+                    3500, // Пауза 3.5 секунды
+                    'Sign in or sign up!', // Второй текст
+                    3500, // Пауза 3.5 секунды
                 ]}
                 wrapper="span"
                 speed={50} // Скорость печати
                 cursor={true} // Включить моргающий курсор
+                repeat={Infinity} // Зациклить анимацию
                 style={{
                     display: 'inline-block',
                     padding: '0.5rem 1rem', // Отступы внутри текста

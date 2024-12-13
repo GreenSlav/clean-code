@@ -2,16 +2,11 @@
 
 public class User
 {
-    public Guid Id { get; private set; }
-    public string Username { get; private set; }
-    public string Email { get; private set; }
-    public string PasswordHash { get; private set; }
-
-    public User(string username, string email, string passwordHash)
-    {
-        Id = Guid.NewGuid();
-        Username = username;
-        Email = email;
-        PasswordHash = passwordHash;
-    }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string Role { get; set; } = "User"; // Пример: User, Admin
+    public bool IsActive { get; set; } = true;
 }
