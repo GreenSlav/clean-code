@@ -1,6 +1,7 @@
 using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Web.BodyModels;
 
 namespace Web.Controllers;
 
@@ -18,9 +19,16 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(string username, string email, string password)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var (success, message) = await _userService.RegisterAsync(username, email, password);
+        if (string.IsNullOrWhiteSpace(request.Username) || 
+            string.IsNullOrWhiteSpace(request.Email) || 
+            string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest(new { message = "All fields are required." });
+        }
+
+        var (success, message) = await _userService.RegisterAsync(request.Username, request.Email, request.Password);
         if (!success)
         {
             return BadRequest(new { message });
@@ -30,9 +38,14 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(string identifier, string password)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var (success, message, user) = await _userService.LoginAsync(identifier, password);
+        if (string.IsNullOrWhiteSpace(request.Identifier) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest(new { message = "Both identifier and password are required." });
+        }
+
+        var (success, message, user) = await _userService.LoginAsync(request.Identifier, request.Password);
         if (!success || user == null)
         {
             return Unauthorized(new { message });
@@ -52,7 +65,7 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = "Login successful." });
     }
-    
+
     [Authorize] // Требует JWT токен
     [HttpGet("verify")]
     public IActionResult Verify()
@@ -60,7 +73,7 @@ public class AuthController : ControllerBase
         // Если пользователь авторизован, просто возвращаем 200 OK
         return Ok(new { message = "User is authenticated." });
     }
-    
+
     [HttpPost("logout")]
     public IActionResult Logout()
     {

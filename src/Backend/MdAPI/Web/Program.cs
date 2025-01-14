@@ -13,6 +13,18 @@ var builder = WebApplication.CreateBuilder(args);
 var envLoader = new EnvService();
 builder.Services.AddSingleton(envLoader);
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Укажи адрес фронтенда
+            .AllowAnyHeader()                     // Разрешить любые заголовки
+            .AllowAnyMethod()                     // Разрешить любые HTTP-методы (GET, POST и т.д.)
+            .AllowCredentials();                  // Разрешить передачу куки
+    });
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddAuthentication("Bearer")
@@ -47,6 +59,16 @@ builder.Services.AddAuthentication("Bearer")
 
 // Регистрируем Application-слой
 builder.Services.AddScoped<UserService>();
+builder.Services.AddSingleton<AuthService>(sp =>
+{
+    var envService = sp.GetRequiredService<EnvService>();
+    return new AuthService(
+        envService.GetVariable("ISSUER", "issuer"),
+        envService.GetVariable("AUDIENCE", "audience"),
+        envService.GetVariable("SECRETKEY", "secretkey")
+    );
+});
+
 
 // Проверяем или создаём базу данных
 var dbInitializer = new DatabaseInitializer(envLoader);
@@ -69,6 +91,7 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync(); // Асинхронная миграция
 }
 
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

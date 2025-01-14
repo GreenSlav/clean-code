@@ -15,9 +15,9 @@ const Wrapper = styled.div`
 const Block = styled.div`
     display: flex;
     flex-direction: column;
-    height: 70%;
+    //height: 80%;
     width: 40%;
-    padding: 20px;
+    padding: 30px;
     border-radius: 15px;
     background-color: #0d2122; /* Внутренний блок с акцентным фоном */
     justify-content: center;
