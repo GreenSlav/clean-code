@@ -79,21 +79,46 @@ const ErrorMessage = styled.p`
 `;
 
 const RegisterPage: React.FC = () => {
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
             setError('Passwords do not match.');
-        } else {
-            setError('');
-            alert('Registration successful!'); // Здесь можно добавить логику отправки формы
+            setSuccess('');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:5001/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Включаем отправку куки
+                body: JSON.stringify({ username, email, password }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                setError(result.message || 'Registration failed.');
+                setSuccess('');
+            } else {
+                setError('');
+                setSuccess(result.message || 'Registration successful!');
+            }
+        } catch (error) {
+            setError('Something went wrong. Please try again.');
+            setSuccess('');
         }
     };
-
     return (
         <Wrapper>
             <Block>
@@ -105,7 +130,20 @@ const RegisterPage: React.FC = () => {
                     flexDirection: "column",
                     alignItems: "center",
                 }}>
-                    <Input type="text" placeholder="Username" required />
+                    <Input
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                    <Input
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
                     <Input
                         type="password"
                         placeholder="Password"
@@ -121,6 +159,7 @@ const RegisterPage: React.FC = () => {
                         required
                     />
                     {error && <ErrorMessage>{error}</ErrorMessage>}
+                    {success && <p style={{ color: '#14b7a6' }}>{success}</p>}
                     <Button type="submit">Register</Button>
                 </form>
             </Block>

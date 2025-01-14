@@ -24,20 +24,20 @@ const Block = styled.div`
     align-items: center;
 `
 
-const LogoWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 50%;
-`;
+// const LogoWrapper = styled.div`
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     height: 100%;
+//     width: 50%;
+// `;
 
-const Logo = styled.img`
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-`;
+// const Logo = styled.img`
+//     max-width: 100%;
+//     max-height: 100%;
+//     object-fit: contain;
+//     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+// `;
 
 const TypingAndAuth = styled.div`
     width: 100%;

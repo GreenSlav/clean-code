@@ -78,21 +78,35 @@ const ErrorMessage = styled.p`
     margin: 0.5rem 0;
 `;
 
+
 const LoginPage: React.FC = () => {
+    const [identifier, setIdentifier] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Пример валидации (добавь свою логику)
-        const username = (e.target as HTMLFormElement).username.value.trim();
-        const password = (e.target as HTMLFormElement).password.value.trim();
+        try {
+            const response = await fetch('http://localhost:5001/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Для отправки и получения куки
+                body: JSON.stringify({ identifier, password }),
+            });
 
-        if (!username || !password) {
-            setError('Both fields are required.');
-        } else {
-            setError('');
-            alert('Login successful!'); // Здесь можно добавить логику отправки формы
+            const result = await response.json();
+
+            if (!response.ok) {
+                setError(result.message || 'Login failed.');
+            } else {
+                setError('');
+                alert(result.message || 'Login successful!');
+            }
+        } catch (error) {
+            setError('Something went wrong. Please try again.');
         }
     };
 
@@ -107,8 +121,22 @@ const LoginPage: React.FC = () => {
                     flexDirection: "column",
                     alignItems: "center",
                 }}>
-                    <Input name="username" type="text" placeholder="Username" required />
-                    <Input name="password" type="password" placeholder="Password" required />
+                    <Input
+                        name="identifier"
+                        type="text"
+                        placeholder="Username or Email"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        required
+                    />
+                    <Input
+                        name="password"
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
                     {error && <ErrorMessage>{error}</ErrorMessage>}
                     <Button type="submit">Log In</Button>
                 </form>
