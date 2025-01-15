@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
+import React, {useState} from 'react';
+import styled, {keyframes} from 'styled-components';
+import {useNavigate} from 'react-router-dom';
 
 const Wrapper = styled.div`
     width: 100vw;
@@ -15,7 +16,6 @@ const Wrapper = styled.div`
 const Block = styled.div`
     display: flex;
     flex-direction: column;
-    //height: 80%;
     width: 40%;
     padding: 30px;
     border-radius: 15px;
@@ -72,10 +72,75 @@ const Button = styled.button`
     }
 `;
 
-const ErrorMessage = styled.p`
-    color: #e63946; /* Красный цвет для ошибки */
+const fadeIn = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+`;
+
+const fadeOut = keyframes`
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+`;
+
+const ErrorMessage = styled.div<{ $isHiding: boolean }>`
+    position: fixed;
+    top: 20px;
+    background-color: #e63946; /* Красный фон */
+    color: #ffffff; /* Белый текст */
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     font-size: 1rem;
-    margin: 0.5rem 0;
+    text-align: center;
+    z-index: 1000;
+    display: flex; /* Для размещения текста и кнопки крестика */
+    justify-content: space-between; /* Пространство между текстом и крестиком */
+    align-items: center;
+    width: 300px; /* Фиксированная ширина */
+    animation: ${({$isHiding}) => ($isHiding ? fadeOut : fadeIn)} 0.3s ease-out;
+`;
+
+const CloseButton = styled.button`
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 10px;
+    outline: none;
+    transition: color 0.3s;
+
+    &:hover {
+        color: #ffcccc; /* Светлый оттенок при наведении */
+    }
+`;
+
+const SuccessMessage = styled.div`
+    position: fixed; /* Абсолютное позиционирование относительно окна браузера */
+    top: 20px; /* Отступ от верхней границы */
+    left: 50%; /* Центрируем по горизонтали */
+    transform: translateX(-50%); /* Выравниваем центр сообщения */
+    background-color: #14b7a6; /* Зеленый фон */
+    color: #ffffff; /* Белый текст */
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    text-align: center;
+    animation: ${fadeIn} 0.3s ease-out;
+    z-index: 1000; /* Поверх остальных элементов */
 `;
 
 const RegisterPage: React.FC = () => {
@@ -85,6 +150,27 @@ const RegisterPage: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isHiding, setIsHiding] = useState(false); // Управляет анимацией скрытия
+    const [showError, setShowError] = useState(false); // Управляет отображением ошибки
+    const navigate = useNavigate(); // Хук для перенаправления
+
+    const handleError = (message: string) => {
+        setShowError(false); // Скрываем текущую ошибку
+        setTimeout(() => {
+            setError(message);
+            setIsHiding(false);
+            setShowError(true); // Показываем ошибку с обновленным текстом
+        }, 100); // Делаем паузу перед повторным отображением
+    };
+
+    const handleCloseError = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault(); // Предотвращаем любые действия по умолчанию
+        setIsHiding(true); // Запускаем анимацию скрытия
+        setTimeout(() => {
+            setShowError(false);
+            setError(''); // Очищаем текст ошибки
+        }, 300); // Тайм-аут совпадает с длительностью анимации
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -102,23 +188,26 @@ const RegisterPage: React.FC = () => {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include', // Включаем отправку куки
-                body: JSON.stringify({ username, email, password }),
+                body: JSON.stringify({username, email, password}),
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                setError(result.message || 'Registration failed.');
+                handleError(result.message || 'Registration failed.');
                 setSuccess('');
             } else {
                 setError('');
                 setSuccess(result.message || 'Registration successful!');
+                setShowError(false);
+                setTimeout(() => navigate('/dashboard'), 2000); // Перенаправление через 2 секунды
             }
         } catch (error) {
-            setError('Something went wrong. Please try again.');
+            handleError('Something went wrong. Please try again.');
             setSuccess('');
         }
     };
+
     return (
         <Wrapper>
             <Block>
@@ -158,8 +247,13 @@ const RegisterPage: React.FC = () => {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                     />
-                    {error && <ErrorMessage>{error}</ErrorMessage>}
-                    {success && <p style={{ color: '#14b7a6' }}>{success}</p>}
+                    {showError &&
+                        <ErrorMessage $isHiding={isHiding}>
+                            {error}
+                            <CloseButton onClick={handleCloseError}>×</CloseButton>
+                        </ErrorMessage>
+                    }
+                    {success && <SuccessMessage>{success}</SuccessMessage>}
                     <Button type="submit">Register</Button>
                 </form>
             </Block>

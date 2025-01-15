@@ -1,5 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import ProtectedPage from "./ProtectedPage.tsx";
+import {useNavigate} from "react-router-dom";
 
 const Wrapper = styled.div`
     display: flex;
@@ -83,25 +85,49 @@ const Button = styled.button`
 `;
 
 const DashboardPage: React.FC = () => {
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch('http://localhost:5001/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include', // Для отправки куки
+            });
+
+            if (response.ok) {
+                // alert('Logout successful!');
+                navigate('/'); // Перенаправление на главную страницу
+            } else {
+                // alert('Failed to log out. Please try again.');
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+            // alert('Something went wrong. Please try again.');
+        }
+    };
+
+
     return (
-        <Wrapper>
-            <Block>
-                <Title>Dashboard</Title>
-                <Subtitle>Welcome, user!</Subtitle>
-                <InfoSection>
-                    <InfoBox>
-                        <strong>Account:</strong> john.doe@example.com
-                    </InfoBox>
-                    <InfoBox>
-                        <strong>Role:</strong> Admin
-                    </InfoBox>
-                    <InfoBox>
-                        <strong>Last Login:</strong> 2023-12-01 14:35:00
-                    </InfoBox>
-                </InfoSection>
-                <Button>Log Out</Button>
-            </Block>
-        </Wrapper>
+        <ProtectedPage>
+            <Wrapper>
+                <Block>
+                    <Title>Dashboard</Title>
+                    <Subtitle>Welcome, user!</Subtitle>
+                    <InfoSection>
+                        <InfoBox>
+                            <strong>Account:</strong> john.doe@example.com
+                        </InfoBox>
+                        <InfoBox>
+                            <strong>Role:</strong> Admin
+                        </InfoBox>
+                        <InfoBox>
+                            <strong>Last Login:</strong> 2023-12-01 14:35:00
+                        </InfoBox>
+                    </InfoSection>
+                    <Button onClick={handleLogout}>Log Out</Button>
+                </Block>
+            </Wrapper>
+        </ProtectedPage>
     );
 };
 

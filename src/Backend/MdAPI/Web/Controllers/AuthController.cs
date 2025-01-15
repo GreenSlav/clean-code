@@ -21,8 +21,8 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Username) || 
-            string.IsNullOrWhiteSpace(request.Email) || 
+        if (string.IsNullOrWhiteSpace(request.Username) ||
+            string.IsNullOrWhiteSpace(request.Email) ||
             string.IsNullOrWhiteSpace(request.Password))
         {
             return BadRequest(new { message = "All fields are required." });
@@ -34,7 +34,26 @@ public class AuthController : ControllerBase
             return BadRequest(new { message });
         }
 
-        return Ok(new { message = "User registered successfully." });
+        // Логика для автоматического логина
+        var (loginSuccess, loginMessage, user) = await _userService.LoginAsync(request.Email, request.Password);
+        if (!loginSuccess || user == null)
+        {
+            return BadRequest(new { message = "Registration succeeded, but automatic login failed." });
+        }
+
+        // Генерация токена
+        var token = _authService.GenerateToken(user.Id, user.Username, user.Role);
+
+        // Добавление токена в куки
+        Response.Cookies.Append("AuthToken", token, new CookieOptions
+        {
+            HttpOnly = true, // Защищает от доступа через JavaScript
+            Secure = true, // Требует HTTPS
+            SameSite = SameSiteMode.Strict, // Только для одного сайта
+            Expires = DateTime.UtcNow.AddHours(1) // Срок действия токена
+        });
+
+        return Ok(new { message = "User registered and logged in successfully." });
     }
 
     [HttpPost("login")]
@@ -58,7 +77,7 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("AuthToken", token, new CookieOptions
         {
             HttpOnly = true, // Защищает от доступа через JavaScript
-            Secure = true,   // Требует HTTPS
+            Secure = true, // Требует HTTPS
             SameSite = SameSiteMode.Strict, // Только для одного сайта
             Expires = DateTime.UtcNow.AddHours(1) // Срок действия токена
         });
