@@ -130,8 +130,8 @@ const CloseButton = styled.button`
 const SuccessMessage = styled.div`
     position: fixed; /* Абсолютное позиционирование относительно окна браузера */
     top: 20px; /* Отступ от верхней границы */
-    left: 50%; /* Центрируем по горизонтали */
-    transform: translateX(-50%); /* Выравниваем центр сообщения */
+    //left: 50%; /* Центрируем по горизонтали */
+    //transform: translateX(-50%); /* Выравниваем центр сообщения */
     background-color: #14b7a6; /* Зеленый фон */
     color: #ffffff; /* Белый текст */
     padding: 1rem 1.5rem;

@@ -5,27 +5,67 @@ import styled, { keyframes } from 'styled-components';
 const fadeIn = keyframes`
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translate(-50%, -10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, 0px);
   }
 `;
 
 const MessageWrapper = styled.div`
     position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #ff4c4c;
-    color: white;
-    padding: 1rem 2rem;
+    //top: 50%; /* Центрирование по вертикали */
+    left: 50%; /* Центрирование по горизонтали */
+    background-color: #e63946; /* Красный фон */
+    transform: translate(-50%, 0px);
+    color: #ffffff; /* Белый текст */
+    padding: 1rem 1.5rem;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    animation: ${fadeIn} 0.5s ease-out;
     font-size: 1rem;
     text-align: center;
+    z-index: 1000;
+    display: flex; /* Для размещения текста и кнопки крестика */
+    justify-content: center; /* Центрирование текста внутри */
+    align-items: center;
+    width: 300px; /* Фиксированная ширина */
+    animation: ${fadeIn} 0.5s ease-out;
+`;
+
+const spin = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const LoadingWrapper = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #0b0d0e; /* Темный фон */
+    color: #fafafa;
+`;
+
+const Spinner = styled.div`
+    width: 50px;
+    height: 50px;
+    border: 5px solid #0d9488; /* Цвет обводки */
+    border-top: 5px solid #14b7a6; /* Акцентный цвет */
+    border-radius: 50%;
+    animation: ${spin} 1s linear infinite; /* Анимация вращения */
+`;
+
+const LoadingText = styled.p`
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    color: #fafafa; /* Белый текст */
+    //animation: ${fadeIn} 0.5s ease-out;
 `;
 
 const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -59,8 +99,21 @@ const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }, [navigate]);
 
     if (isAuthenticated === null) {
-        // Показываем индикатор загрузки, пока идет проверка
-        return <div>Loading...</div>;
+        return (
+            <LoadingWrapper>
+                <div style={
+                    {
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                    <Spinner />
+                    <LoadingText>Checking authentication...</LoadingText>
+                </div>
+            </LoadingWrapper>
+        );
     }
 
     return (

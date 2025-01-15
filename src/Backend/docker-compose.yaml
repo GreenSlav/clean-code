@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000" # Web UI
+      - "9001:9001" # Console
+    environment:
+      MINIO_ROOT_USER: admin # Имя пользователя
+      MINIO_ROOT_PASSWORD: password123 # Пароль
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  minio-data:
