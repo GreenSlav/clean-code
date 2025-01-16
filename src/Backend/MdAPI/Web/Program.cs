@@ -91,6 +91,7 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync(); // Асинхронная миграция
 }
 
+app.UseStaticFiles();
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();

@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{ACF6DE0D-F61A-44C1-8E47-3094F755B109}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownProcessor", "MarkdownProcessor\MarkdownProcessor.csproj", "{8DE24772-1C0E-47FB-86F9-D6554CBD7B87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MdPWASM", "MdPWASM\MdPWASM.csproj", "{35CBDD4A-A30B-4200-815D-7F1AC13434C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{ACF6DE0D-F61A-44C1-8E47-3094F755B109}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACF6DE0D-F61A-44C1-8E47-3094F755B109}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACF6DE0D-F61A-44C1-8E47-3094F755B109}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DE24772-1C0E-47FB-86F9-D6554CBD7B87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DE24772-1C0E-47FB-86F9-D6554CBD7B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DE24772-1C0E-47FB-86F9-D6554CBD7B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DE24772-1C0E-47FB-86F9-D6554CBD7B87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35CBDD4A-A30B-4200-815D-7F1AC13434C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35CBDD4A-A30B-4200-815D-7F1AC13434C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35CBDD4A-A30B-4200-815D-7F1AC13434C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35CBDD4A-A30B-4200-815D-7F1AC13434C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

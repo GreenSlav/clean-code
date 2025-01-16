@@ -7,7 +7,21 @@
     <title>MdP</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <script>
+        window.blazorInterop = {
+          registerProcessor: function (processor) {
+            window.processor = processor;
+          },
+          parseMarkdown: async function (markdownText) {
+            if (!window.processor) {
+              throw new Error("WASM module is not ready yet.");
+            }
+            return await window.processor.invokeMethodAsync("ParseMarkdown", markdownText);
+          }
+        };
+      </script>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
