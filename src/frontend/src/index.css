@@ -18,9 +18,17 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  /*min-width: 320px;*/
+  /*min-height: 100vh;*/
+  width: 100vw;
+  height: 100%;
   font-family: 'Inter', sans-serif; /* Шрифт */
   font-weight: 500;
+  box-sizing: border-box;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
 }
 

@@ -124,6 +124,7 @@ const DashboardPage: React.FC = () => {
                             <strong>Last Login:</strong> 2023-12-01 14:35:00
                         </InfoBox>
                     </InfoSection>
+                    <Button onClick={() => navigate("/editor")}>Go to editor</Button>
                     <Button onClick={handleLogout}>Log Out</Button>
                 </Block>
             </Wrapper>
