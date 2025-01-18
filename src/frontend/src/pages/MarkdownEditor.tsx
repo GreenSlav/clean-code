@@ -105,10 +105,18 @@ const EditorWrapper = styled.div`
     overflow: hidden;
 `;
 
-const EditorPanel = styled.div<{ width: number }>`
+// const EditorPanel = styled.div<{ width: number }>`
+//     height: 100%;
+//     width: ${({ width }) => width}%;
+//     transition: width 0.2s ease;
+// `;
+
+const EditorPanel = styled.div.attrs<{ width: number }>(props => ({
+    style: {
+        width: `${props.width}%`,
+    },
+}))`
     height: 100%;
-    width: ${({ width }) => width}%;
-    transition: width 0.2s ease;
 `;
 
 const InputPanel = styled.textarea`
@@ -183,7 +191,7 @@ const MarkdownEditor: React.FC = () => {
                 await import(`${backendUrl}/api/blazor/resource/blazor.webassembly.js`);
                 await window.Blazor.start({
                     loadBootResource: (type, name, defaultUri, integrity) => {
-                        return `${backendUrl}/api/Blazor/resource/${name}`;
+                        return `${backendUrl}/api/blazor/resource/${name}`;
                     }
                 });
             } catch (error) {
@@ -219,7 +227,7 @@ const MarkdownEditor: React.FC = () => {
     const handleMouseMove = (e: React.MouseEvent) => {
         if (isDragging) {
             const newDividerX = (e.clientX / window.innerWidth) * 100;
-            setDividerX(Math.min(80, Math.max(20, newDividerX)));
+            setDividerX(newDividerX);
         }
     };
 
