@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using System.IO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Web.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class BlazorController : ControllerBase
@@ -18,6 +20,7 @@ public class BlazorController : ControllerBase
         _contentTypeProvider = new FileExtensionContentTypeProvider();
     }
 
+    [AllowAnonymous]
     [HttpGet("resource/{*filename}")] // Поддержка вложенных путей
     public IActionResult GetBlazorResource(string filename)
     {
@@ -42,7 +45,7 @@ public class BlazorController : ControllerBase
         }
 
         // Включаем кэширование для статических файлов
-        Response.Headers["Cache-Control"] = "public, max-age=31536000";
+        //Response.Headers["Cache-Control"] = "public, max-age=31536000";
 
         // Возвращаем файл с MIME-типом
         return PhysicalFile(filePath, contentType);

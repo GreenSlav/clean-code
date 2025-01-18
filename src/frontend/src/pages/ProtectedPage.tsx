@@ -1,21 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import styled, {keyframes} from 'styled-components';
 
 const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translate(-50%, -10px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0px);
-  }
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0px);
+    }
 `;
+
+const FullScreenWrapper = styled.div`
+    width: 100vw;
+    height: 100vh;
+    background-color: #0b0d0e;
+`
 
 const MessageWrapper = styled.div`
     position: fixed;
-    //top: 50%; /* Центрирование по вертикали */
+    top: 45%; /* Центрирование по вертикали */
     left: 50%; /* Центрирование по горизонтали */
     background-color: #e63946; /* Красный фон */
     transform: translate(-50%, 0px);
@@ -34,12 +40,12 @@ const MessageWrapper = styled.div`
 `;
 
 const spin = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 `;
 
 const LoadingWrapper = styled.div`
@@ -65,10 +71,10 @@ const LoadingText = styled.p`
     margin-top: 1rem;
     font-size: 1.5rem;
     color: #fafafa; /* Белый текст */
-    //animation: ${fadeIn} 0.5s ease-out;
+        //animation: ${fadeIn} 0.5s ease-out;
 `;
 
-const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [showMessage, setShowMessage] = useState(false);
     const navigate = useNavigate();
@@ -109,7 +115,7 @@ const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                         alignItems: 'center',
                         justifyContent: 'center',
                     }}>
-                    <Spinner />
+                    <Spinner/>
                     <LoadingText>Checking authentication...</LoadingText>
                 </div>
             </LoadingWrapper>
@@ -118,7 +124,10 @@ const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
     return (
         <>
-            {showMessage && <MessageWrapper>You are not authorized. Redirecting...</MessageWrapper>}
+            {showMessage &&
+                <FullScreenWrapper>
+                    <MessageWrapper>You are not authorized. Redirecting...</MessageWrapper>
+                </FullScreenWrapper>}
             {isAuthenticated && children}
         </>
     );

@@ -1,6 +1,80 @@
 import React, {useEffect, useState, useRef} from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import {useNavigate} from 'react-router-dom';
+
+
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0px);
+  }
+`;
+
+const LoadingWrapper = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #0b0d0e;
+    color: #fafafa;
+`;
+
+const Spinner = styled.div`
+    width: 50px;
+    height: 50px;
+    border: 5px solid #0d9488;
+    border-top: 5px solid #14b7a6;
+    border-radius: 50%;
+    animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.p`
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    color: #fafafa;
+`;
+
+const MessageWrapper = styled.div`
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #e63946;
+    color: #ffffff;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    text-align: center;
+    z-index: 1000;
+    animation: ${fadeIn} 0.5s ease-out;
+`;
+
+// Кнопка крестика для закрытия
+const CloseButton = styled.button`
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 10px;
+    outline: none;
+    transition: color 0.3s;
+
+    &:hover {
+        color: #ffcccc;
+    }
+`;
 
 const EditorContainer = styled.div`
     display: flex;
@@ -162,6 +236,8 @@ const MarkdownEditor: React.FC = () => {
     const [dividerX, setDividerX] = useState(50);
     const [isDragging, setIsDragging] = useState(false);
     const backendUrl = "http://localhost:5001"; // Blazor WebAssembly сервер
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const toggleDropdown = () => {
         setDropdownOpen((prev) => !prev);
@@ -169,6 +245,11 @@ const MarkdownEditor: React.FC = () => {
 
     const closeDropdown = () => {
         setDropdownOpen(false);
+    };
+
+    // Функция закрытия сообщения
+    const handleCloseError = () => {
+        setErrorMessage('');
     };
 
     // Закрытие меню при клике вне него
@@ -188,14 +269,28 @@ const MarkdownEditor: React.FC = () => {
     useEffect(() => {
         const loadBlazor = async () => {
             try {
+                // Проверяем, был ли уже запущен Blazor
+                if (window.Blazor && window.Blazor._internal) {
+                    console.warn("Blazor WebAssembly уже загружен.");
+                    setIsLoading(false);
+                    return;
+                }
+
+                console.log("Загружаем Blazor WebAssembly...");
                 await import(`${backendUrl}/api/blazor/resource/blazor.webassembly.js`);
+
                 await window.Blazor.start({
                     loadBootResource: (type, name, defaultUri, integrity) => {
                         return `${backendUrl}/api/blazor/resource/${name}`;
                     }
                 });
+
+                console.log("Blazor WebAssembly успешно загружен.");
+                setIsLoading(false);
             } catch (error) {
-                console.error('Blazor WebAssembly load error:', error);
+                console.error("Blazor WebAssembly load error:", error);
+                setErrorMessage("Failed to load Blazor WebAssembly.");
+                setIsLoading(false);
             }
         };
 
@@ -236,11 +331,11 @@ const MarkdownEditor: React.FC = () => {
         document.body.style.userSelect = 'auto';
     };
 
-    const insertText = (text: string) => {
-        const selectionStart = (document.activeElement as HTMLTextAreaElement).selectionStart;
-        const selectionEnd = (document.activeElement as HTMLTextAreaElement).selectionEnd;
-        setMarkdownText((prev) => prev.substring(0, selectionStart) + text + prev.substring(selectionEnd));
-    };
+    // const insertText = (text: string) => {
+    //     const selectionStart = (document.activeElement as HTMLTextAreaElement).selectionStart;
+    //     const selectionEnd = (document.activeElement as HTMLTextAreaElement).selectionEnd;
+    //     setMarkdownText((prev) => prev.substring(0, selectionStart) + text + prev.substring(selectionEnd));
+    // };
 
     const handleSaveMarkdown = () => {
         // const blob = new Blob([markdownText], { type: 'text/markdown' });
@@ -279,37 +374,64 @@ const MarkdownEditor: React.FC = () => {
         navigate('/dashboard');
     };
 
-    return (
-        <EditorContainer>
-            <Toolbar>
-                {/* Меню "Файл" */}
-                <Dropdown ref={dropdownRef}>
-                    <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
-                    <DropdownContent className={isDropdownOpen ? 'open' : ''}>
-                        <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
-                        <DropdownItem onClick={handleExportHTML}>Export to HTML</DropdownItem>
-                        <DropdownItem>
-                            Upload Markdown
-                            <input type="file" accept=".md" onChange={handleUploadMarkdown} style={{display: 'none'}}/>
-                        </DropdownItem>
-                        <DropdownItem onClick={closeDropdown}>Access settings</DropdownItem>
-                    </DropdownContent>
-                </Dropdown>
+    if (isLoading) {
+        return (
+            <LoadingWrapper>
+                <div style={{
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
+                    <Spinner />
+                    <LoadingText>Loading necessary files...</LoadingText>
+                </div>
+            </LoadingWrapper>
+        );
+    }
 
-                {/* Кнопка возврата в Dashboard */}
-                <DashboardButton onClick={goToDashboard}>Dashboard</DashboardButton>
-            </Toolbar>
-            <EditorWrapper onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
-                <EditorPanel width={dividerX}>
-                    <InputPanel value={markdownText} onChange={(e) => setMarkdownText(e.target.value)}
-                                placeholder="Enter Markdown..."/>
-                </EditorPanel>
-                <Divider onMouseDown={handleMouseDown}/>
-                <EditorPanel width={100 - dividerX}>
-                    <OutputPanel dangerouslySetInnerHTML={{__html: htmlOutput}}/>
-                </EditorPanel>
-            </EditorWrapper>
-        </EditorContainer>
+    return (
+        <>
+            {/* Сообщение об ошибке */}
+            {errorMessage && (
+                <MessageWrapper>
+                    {errorMessage}
+                    <CloseButton onClick={handleCloseError}>×</CloseButton>
+                </MessageWrapper>
+            )}
+            <EditorContainer>
+                <Toolbar>
+                    {/* Меню "Файл" */}
+                    <Dropdown ref={dropdownRef}>
+                        <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
+                        <DropdownContent className={isDropdownOpen ? 'open' : ''}>
+                            <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
+                            <DropdownItem onClick={handleExportHTML}>Export to HTML</DropdownItem>
+                            <DropdownItem>
+                                Upload Markdown
+                                <input type="file" accept=".md" onChange={handleUploadMarkdown} style={{display: 'none'}}/>
+                            </DropdownItem>
+                            <DropdownItem onClick={closeDropdown}>Access settings</DropdownItem>
+                        </DropdownContent>
+                    </Dropdown>
+
+                    {/* Кнопка возврата в Dashboard */}
+                    <DashboardButton onClick={goToDashboard}>Dashboard</DashboardButton>
+                </Toolbar>
+
+                <EditorWrapper onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+                    <EditorPanel width={dividerX}>
+                        <InputPanel value={markdownText} onChange={(e) => setMarkdownText(e.target.value)}
+                                    placeholder="Enter Markdown..."/>
+                    </EditorPanel>
+                    <Divider onMouseDown={handleMouseDown}/>
+                    <EditorPanel width={100 - dividerX}>
+                        <OutputPanel dangerouslySetInnerHTML={{__html: htmlOutput}}/>
+                    </EditorPanel>
+                </EditorWrapper>
+            </EditorContainer>
+        </>
     );
 };
 
