@@ -17,6 +17,21 @@ public class DocumentsController : ControllerBase
     {
         _documentService = documentService;
     }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetDocument(Guid id)
+    {
+        var userId = this.GetUserId(); // ✅ Получаем ID пользователя из JWT
+
+        var (success, message, content, role) = await _documentService.GetDocumentAsync(id, userId);
+
+        if (!success)
+        {
+            return Forbid(); // ❌ Запрещаем доступ
+        }
+
+        return Ok(new GetDocumentResponse { Content = content, Role = role });
+    }
 
     // Создание документа
     // ✅ Создание нового документа

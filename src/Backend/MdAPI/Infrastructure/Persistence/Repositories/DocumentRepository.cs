@@ -13,6 +13,34 @@ public class DocumentRepository : IDocumentRepository
     {
         _dbContext = dbContext;
     }
+    
+    public async Task<string?> GetUserRoleAsync(Guid documentId, Guid userId)
+    {
+        var collaborator = await _dbContext.DocumentCollaborators
+            .FirstOrDefaultAsync(dc => dc.DocumentId == documentId && dc.UserId == userId);
+
+        return collaborator?.Role; // `owner`, `editor`, `viewer` или `null`, если доступа нет
+    }
+
+    public async Task AddCollaboratorAsync(Guid documentId, Guid userId, string role)
+    {
+        var collaborator = new DocumentCollaborator(documentId, userId, role);
+
+        await _dbContext.DocumentCollaborators.AddAsync(collaborator);
+        await _dbContext.SaveChangesAsync();
+    }
+    
+    public async Task<bool> IsCollaboratorAsync(Guid documentId, Guid userId)
+    {
+        return await _dbContext.DocumentCollaborators
+            .AnyAsync(dc => dc.DocumentId == documentId && dc.UserId == userId);
+    }
+    
+    public async Task<DocumentCollaborator?> GetCollaboratorAsync(Guid documentId, Guid userId)
+    {
+        return await _dbContext.DocumentCollaborators
+            .FirstOrDefaultAsync(dc => dc.DocumentId == documentId && dc.UserId == userId);
+    }
 
     public async Task<Document?> GetByIdAsync(Guid id)
     {

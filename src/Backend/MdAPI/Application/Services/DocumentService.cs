@@ -14,9 +14,43 @@ public class DocumentService
         _fileStorageRepository = fileStorageRepository;
     }
 
-    // Создание документа
-    public async Task<(bool Success, string Message, Guid? DocumentId)> CreateDocumentAsync(
-        Guid userId, string title, string content, bool isPrivate)
+    public async Task<(bool Success, string Message, string Content, string Role)> GetDocumentAsync(Guid documentId,
+        Guid userId)
+    {
+        var document = await _documentRepository.GetByIdAsync(documentId);
+        if (document == null)
+        {
+            return (false, "Document not found.", "", "none");
+        }
+
+        // ✅ Если пользователь = владелец, он "owner"
+        if (document.OwnerId == userId)
+        {
+            var content = await _fileStorageRepository.DownloadFileAsync(document.S3Path);
+            return (true, "Owner access granted.", content, "owner");
+        }
+
+        // ✅ Получаем роль пользователя из `DocumentCollaborators`
+        var collaboratorRole = await _documentRepository.GetUserRoleAsync(documentId, userId);
+        if (collaboratorRole != null)
+        {
+            var content = await _fileStorageRepository.DownloadFileAsync(document.S3Path);
+            return (true, "Collaborator access granted.", content, collaboratorRole);
+        }
+        
+        // ✅ Если документ публичный, разрешаем просмотр (роль `viewer`)
+        if (!document.IsPrivate)
+        {
+            var content = await _fileStorageRepository.DownloadFileAsync(document.S3Path);
+            return (true, "Public document.", content, "viewer");
+        }
+
+        return (false, "Access denied.", "", "none"); // ❌ Доступ запрещён
+    }
+
+// ✅ Создание документа
+    public async Task<(bool Success, string Message, Guid? DocumentId)> CreateDocumentAsync(Guid userId, string title,
+        string content, bool isPrivate)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -25,32 +59,28 @@ public class DocumentService
 
         string s3Path = await _fileStorageRepository.UploadFileAsync(userId, content);
 
-        // 📝 Создаём объект документа
-        var document = new Document(title, content, userId, s3Path, isPrivate);
+        var document = new Document(title, userId, s3Path, isPrivate);
         await _documentRepository.AddAsync(document);
+
+        // ✅ Добавляем владельца в `DocumentCollaborators` с ролью `owner`
+        await _documentRepository.AddCollaboratorAsync(document.Id, userId, "owner");
 
         return (true, "Document created successfully.", document.Id);
     }
 
-    // Обновление документа
+// ✅ Обновление документа
     public async Task<(bool Success, string Message)> UpdateDocumentAsync(Guid documentId, Guid userId, string content)
     {
         var document = await _documentRepository.GetByIdAsync(documentId);
-        if (document == null)
-        {
-            return (false, "Document not found.");
-        }
-
-        if (document.OwnerId != userId)
+        if (document == null || document.OwnerId != userId)
         {
             return (false, "Access denied.");
         }
 
-        // Обновляем содержимое в MinIO
         string newS3Path = await _fileStorageRepository.UploadFileAsync(userId, content);
-        document.UpdateContent(content, newS3Path);
+        document.UpdateS3Path(newS3Path);
         await _documentRepository.UpdateAsync(document);
-        
+
         return (true, "Document updated successfully.");
     }
 }

@@ -332,6 +332,7 @@ const NewDocumentEditor: React.FC = () => {
         };
     }, []);
 
+    // Загрузка Blazor
     useEffect(() => {
         const loadBlazor = async () => {
             try {
@@ -397,28 +398,12 @@ const NewDocumentEditor: React.FC = () => {
         document.body.style.userSelect = 'auto';
     };
 
-    // const insertText = (text: string) => {
-    //     const selectionStart = (document.activeElement as HTMLTextAreaElement).selectionStart;
-    //     const selectionEnd = (document.activeElement as HTMLTextAreaElement).selectionEnd;
-    //     setMarkdownText((prev) => prev.substring(0, selectionStart) + text + prev.substring(selectionEnd));
-    // };
 
     const handleSaveMarkdown = () => {
         setIsFormVisible(true);
         closeDropdown(); // Закрываем меню после клика
 // Открываем форму
     };
-
-    // const handleSaveMarkdown = () => {
-    //     // const blob = new Blob([markdownText], { type: 'text/markdown' });
-    //     // const a = document.createElement('a');
-    //     // a.href = URL.createObjectURL(blob);
-    //     // a.download = 'document.md';
-    //     // document.body.appendChild(a);
-    //     // a.click();
-    //     // document.body.removeChild(a);
-    //     closeDropdown(); // Закрываем меню после клика
-    // };
 
     const handleExportHTML = () => {
         // const blob = new Blob([htmlOutput], { type: 'text/html' });

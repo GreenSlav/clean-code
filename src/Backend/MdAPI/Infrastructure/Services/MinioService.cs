@@ -72,6 +72,22 @@ public class MinioFileStorageRepository : IFileStorageRepository
         await _minioClient.GetObjectAsync(args);
         return Encoding.UTF8.GetString(memoryStream.ToArray());
     }
+    
+    public async Task<string> DownloadFileAsync(string s3Path)
+    {
+        using var memoryStream = new MemoryStream();
+    
+        await _minioClient.GetObjectAsync(new GetObjectArgs()
+            .WithBucket("documents")
+            .WithObject(s3Path)
+            .WithCallbackStream(async stream =>
+            {
+                await stream.CopyToAsync(memoryStream);
+            }));
+
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        return Encoding.UTF8.GetString(memoryStream.ToArray());
+    }
 
     // Удаление файла
     public async Task DeleteFileAsync(Guid userId, string fileName)
