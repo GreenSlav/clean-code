@@ -15,15 +15,20 @@ public class DocumentService
     }
 
     // Создание документа
-    public async Task<(bool Success, string Message, Guid? DocumentId)> CreateDocumentAsync(Guid userId, string title, string content)
+    public async Task<(bool Success, string Message, Guid? DocumentId)> CreateDocumentAsync(
+        Guid userId, string title, string content, bool isPrivate)
     {
-        // Загружаем файл в MinIO
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return (false, "Title cannot be empty.", null);
+        }
+
         string s3Path = await _fileStorageRepository.UploadFileAsync(userId, content);
 
-        // Создаём новый документ
-        var document = new Document(title, content, userId, s3Path);
+        // 📝 Создаём объект документа
+        var document = new Document(title, content, userId, s3Path, isPrivate);
         await _documentRepository.AddAsync(document);
-        
+
         return (true, "Document created successfully.", document.Id);
     }
 

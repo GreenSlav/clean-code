@@ -68,8 +68,11 @@ builder.Services.AddSingleton<AuthService>(sp =>
         envService.GetVariable("SECRETKEY", "secretkey")
     );
 });
+builder.Services.AddScoped<DocumentService>();
 
 
+
+// Регистрируем Infrastructure-слой
 // Проверяем или создаём базу данных
 var dbInitializer = new DatabaseInitializer(envLoader);
 await dbInitializer.EnsureDatabaseExistsAsync(); // Асинхронный вызов
@@ -81,6 +84,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Регистрируем репозиторий
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IFileStorageRepository>((sp) =>
 {
     var envService = sp.GetRequiredService<EnvService>();

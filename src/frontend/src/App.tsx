@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import RegisterPage from "./pages/RegisterPage.tsx";
 import MarkdownEditor from "./pages/MarkdownEditor.tsx";
+import NewDocumentEditor from "./pages/NewDocumentEditor.tsx";
 
 const App: React.FC = () => {
   return (
@@ -14,7 +15,8 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/dashboard" element={<DashboardPage />} ></Route>
-            <Route path="/editor" element={<MarkdownEditor />} ></Route>
+            <Route path="/documents/new" element={<NewDocumentEditor />} ></Route>
+            <Route path="/documents/:id" element={<MarkdownEditor />} ></Route>
         </Routes>
       </Router>
   );

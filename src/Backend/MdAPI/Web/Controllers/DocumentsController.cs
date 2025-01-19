@@ -19,11 +19,19 @@ public class DocumentsController : ControllerBase
     }
 
     // Создание документа
-    [HttpPost]
+    // ✅ Создание нового документа
+    [HttpPost("create")]
     public async Task<IActionResult> CreateDocument([FromBody] CreateDocumentRequest request)
     {
-        var userId = this.GetUserId();
-        var (success, message, documentId) = await _documentService.CreateDocumentAsync(userId, request.Title, request.Content);
+        var userId = this.GetUserId(); // Получаем ID пользователя из JWT
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            return BadRequest(new { message = "Title cannot be empty." });
+        }
+
+        var (success, message, documentId) = await _documentService.CreateDocumentAsync(
+            userId, request.Title, request.Content, request.IsPrivate);
 
         if (!success)
         {

@@ -1,45 +1,50 @@
-import React, { useEffect, useState, useRef} from 'react';
-import styled, { keyframes } from 'styled-components';
-import {useParams, useNavigate} from 'react-router-dom';
+import React, {useEffect, useState, useRef} from 'react';
+import styled, {keyframes} from 'styled-components';
+import {useNavigate} from 'react-router-dom';
 import ProtectedPage from "./ProtectedPage.tsx";
+import DocumentForm from "../components/DocumentForm.tsx";
 
 
 const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 `;
 
 const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translate(-50%, -10px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0px);
-  }
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0px);
+    }
 `;
 
 const fadeInDropdown = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 `;
 
 const fadeOutDropdown = keyframes`
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
 `;
 
 const LoadingWrapper = styled.div`
@@ -164,10 +169,10 @@ const DropdownContent = styled.div<{ $isOpen: boolean }>`
     z-index: 100;
     flex-direction: column;
     padding: 8px;
-    opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
-    transform: ${({ $isOpen }) => ($isOpen ? "translateY(0)" : "translateY(-10px)")};
-    animation: ${({ $isOpen }) => ($isOpen ? fadeInDropdown : fadeOutDropdown)} 0.3s ease-out;
-    pointer-events: ${({ $isOpen }) => ($isOpen ? "auto" : "none")}; /* Блокируем клики, когда меню скрыто */
+    opacity: ${({$isOpen}) => ($isOpen ? 1 : 0)};
+    transform: ${({$isOpen}) => ($isOpen ? "translateY(0)" : "translateY(-10px)")};
+    animation: ${({$isOpen}) => ($isOpen ? fadeInDropdown : fadeOutDropdown)} 0.3s ease-out;
+    pointer-events: ${({$isOpen}) => ($isOpen ? "auto" : "none")}; /* Блокируем клики, когда меню скрыто */
 `;
 
 const DropdownItem = styled.button`
@@ -251,7 +256,7 @@ const Divider = styled.div`
     }
 `;
 
-const MarkdownEditor: React.FC = () => {
+const NewDocumentEditor: React.FC = () => {
     const [markdownText, setMarkdownText] = useState('');
     const [htmlOutput, setHtmlOutput] = useState('');
     const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -263,35 +268,36 @@ const MarkdownEditor: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isVisible, setIsVisible] = useState(false); // Управляет отображением
-    const { id } = useParams<{ id: string }>();
+    const [isFormVisible, setIsFormVisible] = useState(false); // Управляем формой
 
 
-    useEffect(() => {
-        if (!id) {
-            navigate("/documents/new")
-            return;
-        }
-
-
-        fetch(`http://localhost:5001/api/documents/${id}`, {
-            method: "GET",
-            credentials: "include",
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Документ не найден");
-                }
-                return response.json();
-            })
-            .then(data => {
-                setMarkdownText(data.content);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Ошибка загрузки документа:", error);
-                navigate("/dashboard"); // Если документ не найден — возвращаем на Dashboard
+    const saveNewDocument = async (title: string, isPrivate: boolean) => {
+        try {
+            const response = await fetch("http://localhost:5001/api/documents/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    title: title,
+                    content: markdownText, // Используем текст из редактора
+                    isPrivate: isPrivate,
+                }),
             });
-    }, [id, navigate]);
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to create document");
+            }
+
+            alert("Document created successfully!");
+            navigate(`/documents/${data.documentId}`);
+        } catch (error) {
+            alert("Error: " + error.message);
+            console.log(error);
+        }
+    };
 
     const toggleDropdown = () => {
         if (!isDropdownOpen) {
@@ -398,15 +404,21 @@ const MarkdownEditor: React.FC = () => {
     // };
 
     const handleSaveMarkdown = () => {
-        // const blob = new Blob([markdownText], { type: 'text/markdown' });
-        // const a = document.createElement('a');
-        // a.href = URL.createObjectURL(blob);
-        // a.download = 'document.md';
-        // document.body.appendChild(a);
-        // a.click();
-        // document.body.removeChild(a);
+        setIsFormVisible(true);
         closeDropdown(); // Закрываем меню после клика
+// Открываем форму
     };
+
+    // const handleSaveMarkdown = () => {
+    //     // const blob = new Blob([markdownText], { type: 'text/markdown' });
+    //     // const a = document.createElement('a');
+    //     // a.href = URL.createObjectURL(blob);
+    //     // a.download = 'document.md';
+    //     // document.body.appendChild(a);
+    //     // a.click();
+    //     // document.body.removeChild(a);
+    //     closeDropdown(); // Закрываем меню после клика
+    // };
 
     const handleExportHTML = () => {
         // const blob = new Blob([htmlOutput], { type: 'text/html' });
@@ -444,7 +456,7 @@ const MarkdownEditor: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}>
-                    <Spinner />
+                    <Spinner/>
                     <LoadingText>Loading necessary files...</LoadingText>
                 </div>
             </LoadingWrapper>
@@ -460,16 +472,19 @@ const MarkdownEditor: React.FC = () => {
                     <CloseButton onClick={handleCloseError}>×</CloseButton>
                 </MessageWrapper>
             )}
+            {isFormVisible && <DocumentForm onSubmit={saveNewDocument} onClose={() => setIsFormVisible(false)} />}
             <EditorContainer>
                 <Toolbar>
                     {/* Меню "Файл" */}
                     <Dropdown ref={dropdownRef}>
                         <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
-                        <DropdownContent $isOpen={isDropdownOpen} style={{ display: isVisible ? "flex" : "none" }}>                            <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
+                        <DropdownContent $isOpen={isDropdownOpen} style={{display: isVisible ? "flex" : "none"}}>
+                            <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
                             <DropdownItem onClick={handleExportHTML}>Export to HTML</DropdownItem>
                             <DropdownItem>
                                 Upload Markdown
-                                <input type="file" accept=".md" onChange={handleUploadMarkdown} style={{display: 'none'}}/>
+                                <input type="file" accept=".md" onChange={handleUploadMarkdown}
+                                       style={{display: 'none'}}/>
                             </DropdownItem>
                             <DropdownItem onClick={closeDropdown}>Access settings</DropdownItem>
                         </DropdownContent>
@@ -494,4 +509,4 @@ const MarkdownEditor: React.FC = () => {
     );
 };
 
-export default MarkdownEditor;
+export default NewDocumentEditor;
