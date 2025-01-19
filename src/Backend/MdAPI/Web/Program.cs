@@ -81,6 +81,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Регистрируем репозиторий
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IFileStorageRepository>((sp) =>
+{
+    var envService = sp.GetRequiredService<EnvService>();
+    var endpoint = envService.GetVariable("MINIO_ENDPOINT", "localhost:9000");
+    var accessKey = envService.GetVariable("MINIO_ACCESS_KEY", "admin");
+    var secretKey = envService.GetVariable("MINIO_SECRET_KEY", "admin123");
+    
+    return new MinioFileStorageRepository(endpoint, accessKey, secretKey);
+});
 
 var app = builder.Build();
 

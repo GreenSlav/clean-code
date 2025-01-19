@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import styled, { keyframes } from 'styled-components';
 import {useNavigate} from 'react-router-dom';
+import ProtectedPage from "./ProtectedPage.tsx";
 
 
 const spin = keyframes`
@@ -16,6 +17,28 @@ const fadeIn = keyframes`
   to {
     opacity: 1;
     transform: translate(-50%, 0px);
+  }
+`;
+
+const fadeInDropdown = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const fadeOutDropdown = keyframes`
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 `;
 
@@ -130,8 +153,7 @@ const DropdownButton = styled.button`
     }
 `;
 
-const DropdownContent = styled.div`
-    display: none;
+const DropdownContent = styled.div<{ $isOpen: boolean }>`
     position: absolute;
     background-color: #1c1c1c;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -142,10 +164,10 @@ const DropdownContent = styled.div`
     z-index: 100;
     flex-direction: column;
     padding: 8px;
-
-    &.open {
-        display: flex;
-    }
+    opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
+    transform: ${({ $isOpen }) => ($isOpen ? "translateY(0)" : "translateY(-10px)")};
+    animation: ${({ $isOpen }) => ($isOpen ? fadeInDropdown : fadeOutDropdown)} 0.3s ease-out;
+    pointer-events: ${({ $isOpen }) => ($isOpen ? "auto" : "none")}; /* Блокируем клики, когда меню скрыто */
 `;
 
 const DropdownItem = styled.button`
@@ -205,6 +227,7 @@ const InputPanel = styled.textarea`
     resize: none;
     overflow: auto;
     padding: 15px;
+    box-sizing: border-box;
 `;
 
 const OutputPanel = styled.div`
@@ -214,6 +237,7 @@ const OutputPanel = styled.div`
     white-space: pre-wrap;
     padding: 20px;
     height: 100%;
+    box-sizing: border-box;
 `;
 
 const Divider = styled.div`
@@ -238,9 +262,16 @@ const MarkdownEditor: React.FC = () => {
     const backendUrl = "http://localhost:5001"; // Blazor WebAssembly сервер
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isVisible, setIsVisible] = useState(false); // Управляет отображением
 
     const toggleDropdown = () => {
-        setDropdownOpen((prev) => !prev);
+        if (!isDropdownOpen) {
+            setIsVisible(true); // Сначала показываем
+            setTimeout(() => setDropdownOpen(true), 10); // Запускаем анимацию
+        } else {
+            setDropdownOpen(false);
+            setTimeout(() => setIsVisible(false), 300); // Ждём завершения анимации и скрываем
+        }
     };
 
     const closeDropdown = () => {
@@ -392,7 +423,7 @@ const MarkdownEditor: React.FC = () => {
     }
 
     return (
-        <>
+        <ProtectedPage>
             {/* Сообщение об ошибке */}
             {errorMessage && (
                 <MessageWrapper>
@@ -405,8 +436,7 @@ const MarkdownEditor: React.FC = () => {
                     {/* Меню "Файл" */}
                     <Dropdown ref={dropdownRef}>
                         <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
-                        <DropdownContent className={isDropdownOpen ? 'open' : ''}>
-                            <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
+                        <DropdownContent $isOpen={isDropdownOpen} style={{ display: isVisible ? "flex" : "none" }}>                            <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
                             <DropdownItem onClick={handleExportHTML}>Export to HTML</DropdownItem>
                             <DropdownItem>
                                 Upload Markdown
@@ -431,7 +461,7 @@ const MarkdownEditor: React.FC = () => {
                     </EditorPanel>
                 </EditorWrapper>
             </EditorContainer>
-        </>
+        </ProtectedPage>
     );
 };
 
