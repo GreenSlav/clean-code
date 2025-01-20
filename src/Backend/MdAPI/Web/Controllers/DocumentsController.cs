@@ -1,5 +1,6 @@
 using System.Text;
 using Application.Services;
+using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.BodyModels;
@@ -48,6 +49,34 @@ public class DocumentsController : ControllerBase
             lastEdited = d.Document.LastEdited.ToString("dd.MM.yyyy HH:mm:ss"), 
             role = d.Document.OwnerId == userId ? "owner" : d.Role
         }));
+    }
+    
+    [HttpGet("{documentId}/settings")]
+    public async Task<IActionResult> GetDocumentSettings(Guid documentId)
+    {
+        var userId = this.GetUserId();
+        var (success, settings, message) = await _documentService.GetDocumentSettingsAsync(documentId, userId);
+
+        if (!success)
+        {
+            return BadRequest(new { message });
+        }
+
+        return Ok(settings);
+    }
+    
+    [HttpPost("{documentId}/collaborators")]
+    public async Task<IActionResult> AddCollaborator(Guid documentId, [FromBody] AddCollaboratorRequest request)
+    {
+        var userId = this.GetUserId();
+        var (success, newCollaborator, message) = await _documentService.AddCollaboratorAsync(documentId, userId, request.Username, request.Role);
+
+        if (!success)
+        {
+            return BadRequest(new { message });
+        }
+
+        return Ok(newCollaborator);
     }
 
     // Создание документа
@@ -110,8 +139,21 @@ public class DocumentsController : ControllerBase
 
         return Ok(new { message = "Document updated successfully." });
     }
+    
+    [HttpPut("{documentId}/settings")]
+    public async Task<IActionResult> UpdateDocumentSettings(Guid documentId, [FromBody] UpdateDocumentSettingsRequest request)
+    {
+        var userId = this.GetUserId();
+        var (success, message) = await _documentService.UpdateDocumentSettingsAsync(documentId, userId, request);
 
-    [Authorize]
+        if (!success)
+        {
+            return BadRequest(new { message });
+        }
+
+        return Ok(new { message = "Settings updated successfully." });
+    }
+
     [HttpDelete("{documentId}")]
     public async Task<IActionResult> DeleteDocument(Guid documentId)
     {
@@ -125,5 +167,19 @@ public class DocumentsController : ControllerBase
         }
 
         return Ok(new { message = "Document deleted successfully." });
+    }
+    
+    [HttpDelete("{documentId}/collaborators/{userId}")]
+    public async Task<IActionResult> RemoveCollaborator(Guid documentId, Guid userId)
+    {
+        var ownerId = this.GetUserId();
+        var (success, message) = await _documentService.RemoveCollaboratorAsync(documentId, ownerId, userId);
+
+        if (!success)
+        {
+            return BadRequest(new { message });
+        }
+
+        return Ok(new { message = "Collaborator removed successfully." });
     }
 }

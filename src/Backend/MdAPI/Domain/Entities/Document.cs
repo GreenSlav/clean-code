@@ -31,4 +31,17 @@ public class Document
         S3Path = newS3Path;
         LastEdited = DateTime.UtcNow;
     }
+    
+    public void UpdateTitle(string newTitle)
+    {
+        if (!string.IsNullOrWhiteSpace(newTitle))
+        {
+            Title = newTitle;
+        }
+    }
+    
+    public void SetPrivacy(bool isPrivate)
+    {
+        IsPrivate = isPrivate;
+    }
 }

@@ -22,4 +22,12 @@ public class DocumentCollaborator
 
     // Приватный конструктор для EF Core
     private DocumentCollaborator() { }
+    
+    public void UpdateRole(string newRole)
+    {
+        if (newRole == "viewer" || newRole == "editor")
+        {
+            Role = newRole;
+        }
+    }
 }

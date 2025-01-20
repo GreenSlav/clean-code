@@ -66,6 +66,14 @@ public class DocumentRepository : IDocumentRepository
             .Where(d => d.OwnerId == ownerId)
             .ToListAsync();
     }
+    
+    public async Task<List<DocumentCollaborator>> GetCollaboratorsAsync(Guid documentId)
+    {
+        return await _dbContext.DocumentCollaborators
+            .Where(dc => dc.DocumentId == documentId)
+            .Include(dc => dc.User) // Загружаем данные о пользователе
+            .ToListAsync();
+    }
 
     public async Task AddAsync(Document document)
     {
@@ -79,10 +87,22 @@ public class DocumentRepository : IDocumentRepository
         await _dbContext.SaveChangesAsync();
     }
     
+    public async Task UpdateCollaboratorAsync(DocumentCollaborator collaborator)
+    {
+        _dbContext.DocumentCollaborators.Update(collaborator);
+        await _dbContext.SaveChangesAsync();
+    }
+    
     public async Task RemoveCollaboratorsAsync(Guid documentId)
     {
         var collaborators = _dbContext.DocumentCollaborators.Where(dc => dc.DocumentId == documentId);
         _dbContext.DocumentCollaborators.RemoveRange(collaborators);
+        await _dbContext.SaveChangesAsync();
+    }
+    
+    public async Task RemoveCollaboratorAsync(DocumentCollaborator collaborator)
+    {
+        _dbContext.DocumentCollaborators.Remove(collaborator);
         await _dbContext.SaveChangesAsync();
     }
 

@@ -3,6 +3,7 @@ import styled, {keyframes} from 'styled-components';
 import {useParams, useNavigate} from 'react-router-dom';
 import ProtectedPage from "./ProtectedPage.tsx";
 import DocumentForm from "../components/DocumentForm.tsx";
+import AccessSettingsModal from "../components/AccessSettingsModal.tsx";
 
 
 const spin = keyframes`
@@ -279,6 +280,7 @@ const MarkdownEditor: React.FC = () => {
     const [isFormVisible, setIsFormVisible] = useState(false); // Управляем формой
     const [pendingMarkdown, setPendingMarkdown] = useState<string | null>(null); // Временный Markdown (ожидание Blazor)
     const [isBlazorLoaded, setIsBlazorLoaded] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const {id} = useParams<{ id: string }>();
 
     // Загрузка Blazor
@@ -518,6 +520,7 @@ const MarkdownEditor: React.FC = () => {
                     <CloseButton onClick={handleCloseSuccess}>×</CloseButton>
                 </MessageWrapper>
             )}
+            {isSettingsOpen && <AccessSettingsModal documentId={id} onClose={() => setIsSettingsOpen(false)} />}
             {isFormVisible && <DocumentForm onSubmit={saveDocument} onClose={() => setIsFormVisible(false)}/>}
             <EditorContainer>
                 <Toolbar>
@@ -531,7 +534,7 @@ const MarkdownEditor: React.FC = () => {
                                 <input type="file" accept=".md" onChange={handleUploadMarkdown}
                                        style={{display: 'none'}}/>
                             </DropdownItem>
-                            <DropdownItem onClick={closeDropdown}>Access settings</DropdownItem>
+                            <DropdownItem onClick={() => setIsSettingsOpen(true)}>Access settings</DropdownItem>
                         </DropdownContent>
                     </Dropdown>
 
