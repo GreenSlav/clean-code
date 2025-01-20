@@ -21,6 +21,17 @@ public class DocumentRepository : IDocumentRepository
 
         return collaborator?.Role; // `owner`, `editor`, `viewer` или `null`, если доступа нет
     }
+    
+    public async Task<List<DocumentWithRole>> GetCollaboratorDocumentsAsync(Guid userId)
+    {
+        return await _dbContext.DocumentCollaborators
+            .Where(dc => dc.UserId == userId)
+            .Join(_dbContext.Documents,
+                dc => dc.DocumentId,
+                doc => doc.Id,
+                (dc, doc) => new DocumentWithRole(doc, dc.Role)) // ✅ Создаём объект
+            .ToListAsync();
+    }
 
     public async Task AddCollaboratorAsync(Guid documentId, Guid userId, string role)
     {
@@ -66,5 +77,22 @@ public class DocumentRepository : IDocumentRepository
     {
         _dbContext.Documents.Update(document);
         await _dbContext.SaveChangesAsync();
+    }
+    
+    public async Task RemoveCollaboratorsAsync(Guid documentId)
+    {
+        var collaborators = _dbContext.DocumentCollaborators.Where(dc => dc.DocumentId == documentId);
+        _dbContext.DocumentCollaborators.RemoveRange(collaborators);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Guid documentId)
+    {
+        var document = await _dbContext.Documents.FindAsync(documentId);
+        if (document != null)
+        {
+            _dbContext.Documents.Remove(document);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

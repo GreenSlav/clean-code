@@ -47,6 +47,19 @@ public class DocumentService
 
         return (false, "Access denied.", "", "none"); // ❌ Доступ запрещён
     }
+    
+    public async Task<List<DocumentWithRole>> GetUserDocumentsAsync(Guid userId)
+    {
+        // ✅ Получаем все документы, где пользователь = владелец
+        var ownedDocs = await _documentRepository.GetByOwnerIdAsync(userId);
+
+        // ✅ Получаем все документы, где пользователь = `editor` или `viewer`
+        var collaboratedDocs = await _documentRepository.GetCollaboratorDocumentsAsync(userId);
+
+        return ownedDocs.Select(doc => new DocumentWithRole(doc, "owner"))
+            .Concat(collaboratedDocs)
+            .ToList();
+    }
 
 // ✅ Создание документа
     public async Task<(bool Success, string Message, Guid? DocumentId)> CreateDocumentAsync(Guid userId, string title,
@@ -67,6 +80,26 @@ public class DocumentService
 
         return (true, "Document created successfully.", document.Id);
     }
+    
+    public async Task<(bool Success, string Message, string Content)> DownloadDocumentAsync(Guid documentId, Guid userId)
+    {
+        var document = await _documentRepository.GetByIdAsync(documentId);
+        if (document == null)
+        {
+            return (false, "Document not found.", "");
+        }
+
+        // ✅ Проверяем доступ
+        var hasAccess = document.OwnerId == userId || await _documentRepository.IsCollaboratorAsync(documentId, userId);
+        if (!hasAccess)
+        {
+            return (false, "Access denied.", "");
+        }
+
+        // ✅ Загружаем содержимое из MinIO
+        var content = await _fileStorageRepository.DownloadFileAsync(document.S3Path);
+        return (true, "Success", content);
+    }
 
 // ✅ Обновление документа
     public async Task<(bool Success, string Message)> UpdateDocumentAsync(Guid documentId, Guid userId, string content)
@@ -82,5 +115,31 @@ public class DocumentService
         await _documentRepository.UpdateAsync(document);
 
         return (true, "Document updated successfully.");
+    }
+    
+    public async Task<(bool Success, string Message)> DeleteDocumentAsync(Guid documentId, Guid userId)
+    {
+        var document = await _documentRepository.GetByIdAsync(documentId);
+        if (document == null)
+        {
+            return (false, "Document not found.");
+        }
+
+        // ✅ Только владелец (`owner`) может удалить документ
+        if (document.OwnerId != userId)
+        {
+            return (false, "Access denied.");
+        }
+
+        // ✅ Удаляем файл из MinIO
+        await _fileStorageRepository.DeleteFileAsync(document.S3Path);
+
+        // ✅ Удаляем всех коллабораторов
+        await _documentRepository.RemoveCollaboratorsAsync(documentId);
+
+        // ✅ Удаляем сам документ
+        await _documentRepository.DeleteAsync(documentId);
+
+        return (true, "Document deleted successfully.");
     }
 }

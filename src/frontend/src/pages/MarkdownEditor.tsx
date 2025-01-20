@@ -325,6 +325,11 @@ const MarkdownEditor: React.FC = () => {
             credentials: "include",
         })
             .then(response => {
+                if (response.status === 403) { // ⛔ Запрещено
+                    setErrorMessage("Access denied to this document."); // 🔴 Показываем сообщение
+                    setTimeout(() => navigate("/dashboard"), 3000); // ⏳ Ждем 3 секунды, потом редирект
+                    throw new Error("Access forbidden");
+                }
                 if (!response.ok) {
                     throw new Error("Документ не найден или доступ запрещён");
                 }
@@ -333,13 +338,15 @@ const MarkdownEditor: React.FC = () => {
             .then(data => {
                 setUserRole(data.role);
                 setPendingMarkdown(data.content); // ⏳ Пока держим Markdown в pendingMarkdown
-                //setIsLoading(false);
             })
             .catch(error => {
                 console.error("Ошибка загрузки документа:", error);
-                navigate("/dashboard");
+                if (error.message !== "Access forbidden") {
+                    navigate("/dashboard"); // Если другая ошибка, просто редиректим сразу
+                }
             });
     }, [id, navigate]);
+
 
     // ⏳ Когда Blazor загрузился, переносим `pendingMarkdown` в `markdownText`
     useEffect(() => {

@@ -1,3 +1,4 @@
+using System.Text;
 using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,7 @@ public class DocumentsController : ControllerBase
     {
         _documentService = documentService;
     }
-    
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetDocument(Guid id)
     {
@@ -31,6 +32,22 @@ public class DocumentsController : ControllerBase
         }
 
         return Ok(new GetDocumentResponse { Content = content, Role = role });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUserDocuments()
+    {
+        var userId = this.GetUserId(); // ✅ Получаем ID пользователя из JWT
+
+        var documents = await _documentService.GetUserDocumentsAsync(userId);
+    
+        return Ok(documents.Select(d => new
+        {
+            id = d.Document.Id,  // ✅ Теперь правильно
+            title = d.Document.Title,
+            lastEdited = d.Document.LastEdited.ToString("dd.MM.yyyy HH:mm:ss"), 
+            role = d.Document.OwnerId == userId ? "owner" : d.Role
+        }));
     }
 
     // Создание документа
@@ -56,12 +73,30 @@ public class DocumentsController : ControllerBase
         return Ok(new { message = "Document created successfully.", documentId });
     }
 
+    [Authorize]
+    [HttpGet("{documentId}/download")]
+    public async Task<IActionResult> DownloadDocument(Guid documentId)
+    {
+        var userId = this.GetUserId();
+
+        var (success, message, content) = await _documentService.DownloadDocumentAsync(documentId, userId);
+
+        if (!success)
+        {
+            return Forbid();
+        }
+
+        var fileBytes = Encoding.UTF8.GetBytes(content);
+        return File(fileBytes, "text/markdown", "document.md");
+    }
+
     // Обновление документа
     [HttpPut]
     public async Task<IActionResult> UpdateDocument([FromBody] UpdateDocumentRequest request)
     {
         var userId = this.GetUserId();
-        var (success, message) = await _documentService.UpdateDocumentAsync(request.DocumentId, userId, request.Content);
+        var (success, message) =
+            await _documentService.UpdateDocumentAsync(request.DocumentId, userId, request.Content);
 
         if (!success)
         {
@@ -69,5 +104,21 @@ public class DocumentsController : ControllerBase
         }
 
         return Ok(new { message = "Document updated successfully." });
+    }
+
+    [Authorize]
+    [HttpDelete("{documentId}")]
+    public async Task<IActionResult> DeleteDocument(Guid documentId)
+    {
+        var userId = this.GetUserId();
+
+        var (success, message) = await _documentService.DeleteDocumentAsync(documentId, userId);
+
+        if (!success)
+        {
+            return Forbid();
+        }
+
+        return Ok(new { message = "Document deleted successfully." });
     }
 }

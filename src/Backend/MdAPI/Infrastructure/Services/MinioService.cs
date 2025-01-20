@@ -90,6 +90,16 @@ public class MinioFileStorageRepository : IFileStorageRepository
     }
 
     // Удаление файла
+    public async Task DeleteFileAsync(string s3Path)
+    {
+        string objectName = $"{s3Path}";
+        var args = new RemoveObjectArgs()
+            .WithBucket(_bucketName)
+            .WithObject(objectName);
+
+        await _minioClient.RemoveObjectAsync(args);
+    }
+    
     public async Task DeleteFileAsync(Guid userId, string fileName)
     {
         string objectName = $"{userId}/{fileName}";

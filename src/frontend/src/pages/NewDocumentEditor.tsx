@@ -291,10 +291,11 @@ const NewDocumentEditor: React.FC = () => {
                 throw new Error(data.message || "Failed to create document");
             }
 
-            alert("Document created successfully!");
+            //alert("Document created successfully!");
             navigate(`/documents/${data.documentId}`);
+            window.location.reload();
         } catch (error) {
-            alert("Error: " + error.message);
+            //alert("Error: " + error.message);
             console.log(error);
         }
     };
