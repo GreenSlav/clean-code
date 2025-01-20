@@ -91,12 +91,17 @@ public class DocumentsController : ControllerBase
     }
 
     // Обновление документа
-    [HttpPut]
-    public async Task<IActionResult> UpdateDocument([FromBody] UpdateDocumentRequest request)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateDocument(Guid id, [FromBody] UpdateDocumentRequest request)
     {
-        var userId = this.GetUserId();
-        var (success, message) =
-            await _documentService.UpdateDocumentAsync(request.DocumentId, userId, request.Content);
+        var userId = this.GetUserId(); // ✅ Получаем ID пользователя из JWT
+
+        if (id != request.DocumentId) // ✅ Проверяем, совпадает ли ID документа
+        {
+            return BadRequest(new { message = "Document ID mismatch." });
+        }
+
+        var (success, message) = await _documentService.UpdateDocumentAsync(id, userId, request.Content);
 
         if (!success)
         {

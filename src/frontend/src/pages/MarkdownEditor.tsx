@@ -72,12 +72,12 @@ const LoadingText = styled.p`
     color: #fafafa;
 `;
 
-const MessageWrapper = styled.div`
+const MessageWrapper = styled.div<{ color?: string }>`
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #e63946;
+    background-color: ${({ color }) => color || "#e63946"}; // ✅ По умолчанию красный
     color: #ffffff;
     padding: 1rem 1.5rem;
     border-radius: 8px;
@@ -168,7 +168,8 @@ const DropdownContent = styled.div<{ $isOpen: boolean }>`
     left: 0;
     z-index: 100;
     flex-direction: column;
-    padding: 8px;
+    overflow: hidden;
+    //padding: 8px;
     opacity: ${({$isOpen}) => ($isOpen ? 1 : 0)};
     transform: ${({$isOpen}) => ($isOpen ? "translateY(0)" : "translateY(-10px)")};
     animation: ${({$isOpen}) => ($isOpen ? fadeInDropdown : fadeOutDropdown)} 0.3s ease-out;
@@ -186,9 +187,8 @@ const DropdownItem = styled.button`
     transition: background 0.2s;
 
     &:hover {
-        background: #0b0d0e;
+        background: #181818;
         color: #5eead4;
-        border-radius: 5px;
     }
 `;
 
@@ -274,6 +274,7 @@ const MarkdownEditor: React.FC = () => {
     const backendUrl = "http://localhost:5001"; // Blazor WebAssembly сервер
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [isVisible, setIsVisible] = useState(false); // Управляет отображением
     const [isFormVisible, setIsFormVisible] = useState(false); // Управляем формой
     const [pendingMarkdown, setPendingMarkdown] = useState<string | null>(null); // Временный Markdown (ожидание Blazor)
@@ -362,6 +363,38 @@ const MarkdownEditor: React.FC = () => {
         setIsLoading(false);
     }, [markdownText, isBlazorLoaded]);
 
+    const updateDocument = async () => {
+        if (!id) return;
+
+        try {
+            const response = await fetch(`http://localhost:5001/api/documents/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include", // Передаем куки для авторизации
+                body: JSON.stringify({
+                    DocumentId: id, // 🔥 Передаем ID документа
+                    content: markdownText // 🔥 Передаем новый контент
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update document");
+            }
+
+            setSuccessMessage("✅ Document saved successfully!"); // Уведомление об успешном сохранении
+            setTimeout(() => setSuccessMessage(""), 2000); // Через 2 сек убираем
+        } catch (error) {
+            setErrorMessage("❌ Error saving document: " + error.message);
+            setTimeout(() => setErrorMessage(""), 3000); // Через 3 сек убираем
+        }
+        finally {
+            closeDropdown();
+        }
+    };
+
+
     const saveDocument = () => {
 
     }
@@ -380,10 +413,15 @@ const MarkdownEditor: React.FC = () => {
         setDropdownOpen(false);
     };
 
+    const handleCloseSuccess = () => {
+        setSuccessMessage('');
+    };
+
     // Функция закрытия сообщения
     const handleCloseError = () => {
         setErrorMessage('');
     };
+
 
     // Закрытие меню при клике вне него
     useEffect(() => {
@@ -433,36 +471,14 @@ const MarkdownEditor: React.FC = () => {
         document.body.style.userSelect = 'auto';
     };
 
-    const handleSaveMarkdown = () => {
-        // const blob = new Blob([markdownText], { type: 'text/markdown' });
-        // const a = document.createElement('a');
-        // a.href = URL.createObjectURL(blob);
-        // a.download = 'document.md';
-        // document.body.appendChild(a);
-        // a.click();
-        // document.body.removeChild(a);
-        closeDropdown(); // Закрываем меню после клика
-    };
-
-    const handleExportHTML = () => {
-        // const blob = new Blob([htmlOutput], { type: 'text/html' });
-        // const a = document.createElement('a');
-        // a.href = URL.createObjectURL(blob);
-        // a.download = 'document.html';
-        // document.body.appendChild(a);
-        // a.click();
-        // document.body.removeChild(a);
-        closeDropdown(); // Закрываем меню после клика
-    };
-
     const handleUploadMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // const file = e.target.files?.[0];
-        // if (!file) return;
-        // const reader = new FileReader();
-        // reader.onload = (event) => {
-        //     setMarkdownText(event.target?.result as string);
-        // };
-        // reader.readAsText(file);
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setMarkdownText(event.target?.result as string);
+        };
+        reader.readAsText(file);
         closeDropdown();
     };
 
@@ -496,6 +512,12 @@ const MarkdownEditor: React.FC = () => {
                     <CloseButton onClick={handleCloseError}>×</CloseButton>
                 </MessageWrapper>
             )}
+            {successMessage && (
+                <MessageWrapper color="#18CB1F67">
+                    {successMessage}
+                    <CloseButton onClick={handleCloseSuccess}>×</CloseButton>
+                </MessageWrapper>
+            )}
             {isFormVisible && <DocumentForm onSubmit={saveDocument} onClose={() => setIsFormVisible(false)}/>}
             <EditorContainer>
                 <Toolbar>
@@ -503,8 +525,7 @@ const MarkdownEditor: React.FC = () => {
                     <Dropdown ref={dropdownRef}>
                         <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
                         <DropdownContent $isOpen={isDropdownOpen} style={{display: isVisible ? "flex" : "none"}}>
-                            <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
-                            <DropdownItem onClick={handleExportHTML}>Export to HTML</DropdownItem>
+                            <DropdownItem onClick={updateDocument}>Save</DropdownItem>
                             <DropdownItem>
                                 Upload Markdown
                                 <input type="file" accept=".md" onChange={handleUploadMarkdown}

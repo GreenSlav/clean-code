@@ -168,7 +168,8 @@ const DropdownContent = styled.div<{ $isOpen: boolean }>`
     left: 0;
     z-index: 100;
     flex-direction: column;
-    padding: 8px;
+    overflow: hidden;
+    //padding: 8px;
     opacity: ${({$isOpen}) => ($isOpen ? 1 : 0)};
     transform: ${({$isOpen}) => ($isOpen ? "translateY(0)" : "translateY(-10px)")};
     animation: ${({$isOpen}) => ($isOpen ? fadeInDropdown : fadeOutDropdown)} 0.3s ease-out;
@@ -186,9 +187,8 @@ const DropdownItem = styled.button`
     transition: background 0.2s;
 
     &:hover {
-        background: #0b0d0e;
+        background: #181818;
         color: #5eead4;
-        border-radius: 5px;
     }
 `;
 
@@ -406,25 +406,14 @@ const NewDocumentEditor: React.FC = () => {
 // Открываем форму
     };
 
-    const handleExportHTML = () => {
-        // const blob = new Blob([htmlOutput], { type: 'text/html' });
-        // const a = document.createElement('a');
-        // a.href = URL.createObjectURL(blob);
-        // a.download = 'document.html';
-        // document.body.appendChild(a);
-        // a.click();
-        // document.body.removeChild(a);
-        closeDropdown(); // Закрываем меню после клика
-    };
-
     const handleUploadMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // const file = e.target.files?.[0];
-        // if (!file) return;
-        // const reader = new FileReader();
-        // reader.onload = (event) => {
-        //     setMarkdownText(event.target?.result as string);
-        // };
-        // reader.readAsText(file);
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setMarkdownText(event.target?.result as string);
+        };
+        reader.readAsText(file);
         closeDropdown();
     };
 
@@ -466,7 +455,6 @@ const NewDocumentEditor: React.FC = () => {
                         <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
                         <DropdownContent $isOpen={isDropdownOpen} style={{display: isVisible ? "flex" : "none"}}>
                             <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
-                            <DropdownItem onClick={handleExportHTML}>Export to HTML</DropdownItem>
                             <DropdownItem>
                                 Upload Markdown
                                 <input type="file" accept=".md" onChange={handleUploadMarkdown}
