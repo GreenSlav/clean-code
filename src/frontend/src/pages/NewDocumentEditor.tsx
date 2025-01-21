@@ -269,7 +269,7 @@ const NewDocumentEditor: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isVisible, setIsVisible] = useState(false); // Управляет отображением
     const [isFormVisible, setIsFormVisible] = useState(false); // Управляем формой
-
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const saveNewDocument = async (title: string, isPrivate: boolean) => {
         try {
@@ -312,6 +312,12 @@ const NewDocumentEditor: React.FC = () => {
 
     const closeDropdown = () => {
         setDropdownOpen(false);
+    };
+
+    const handleUploadClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click(); // 🚀 Программно кликаем по инпуту
+        }
     };
 
     // Функция закрытия сообщения
@@ -423,8 +429,10 @@ const NewDocumentEditor: React.FC = () => {
 
 
     const handleUploadMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log("use"); // ✅ Теперь выводится в консоль
         const file = e.target.files?.[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = (event) => {
             setMarkdownText(event.target?.result as string);
@@ -471,10 +479,15 @@ const NewDocumentEditor: React.FC = () => {
                         <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
                         <DropdownContent $isOpen={isDropdownOpen} style={{display: isVisible ? "flex" : "none"}}>
                             <DropdownItem onClick={handleSaveMarkdown}>Save</DropdownItem>
-                            <DropdownItem>
+                            <DropdownItem onClick={handleUploadClick}> {/* 🔥 Обработчик клика */}
                                 Upload Markdown
-                                <input type="file" accept=".md" onChange={handleUploadMarkdown}
-                                       style={{display: 'none'}}/>
+                                <input
+                                    type="file"
+                                    accept=".md"
+                                    ref={fileInputRef} // 🎯 Привязываем `ref`
+                                    onChange={handleUploadMarkdown}
+                                    style={{ display: "none" }} // ✅ Можно оставить скрытым
+                                />
                             </DropdownItem>
                         </DropdownContent>
                     </Dropdown>
