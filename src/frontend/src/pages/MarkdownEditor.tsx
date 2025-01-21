@@ -197,11 +197,34 @@ const DropdownItem = styled.button`
     }
 `;
 
-const DashboardButton = styled(DropdownButton)`
+const DashboardButton = styled.button`
+    background: transparent;
     color: white;
+    border: none;
+    position: relative;
+    padding: 8px 12px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+
+    &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0%;
+        height: 2px;
+        background: #14b7a6;
+        transition: width 0.3s ease-in-out;
+    }
 
     &:hover {
         color: #14b7a6;
+    }
+
+    &:hover::after {
+        width: 100%;
     }
 `;
 
@@ -539,7 +562,7 @@ const MarkdownEditor: React.FC = () => {
                 <Toolbar>
                     {/* Меню "Файл" */}
                     <Dropdown ref={dropdownRef}>
-                        <DropdownButton $isActive={userRole !== "viewer" && userRole !== "none"}>
+                        <DropdownButton onClick={toggleDropdown} $isActive={userRole !== "viewer" && userRole !== "none"}>
                             File
                         </DropdownButton>
                         <DropdownContent $isOpen={isDropdownOpen} style={{display: isVisible ? "flex" : "none"}}>
