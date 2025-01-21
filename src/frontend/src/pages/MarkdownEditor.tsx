@@ -562,7 +562,7 @@ const MarkdownEditor: React.FC = () => {
                 <Toolbar>
                     {/* Меню "Файл" */}
                     <Dropdown ref={dropdownRef}>
-                        <DropdownButton onClick={toggleDropdown} $isActive={userRole !== "viewer" && userRole !== "none"}>
+                        <DropdownButton onClick={toggleDropdown} disabled={userRole === "viewer" || userRole == "none"} $isActive={userRole !== "viewer" && userRole !== "none"}>
                             File
                         </DropdownButton>
                         <DropdownContent $isOpen={isDropdownOpen} style={{display: isVisible ? "flex" : "none"}}>

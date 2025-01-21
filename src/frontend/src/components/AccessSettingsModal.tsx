@@ -88,7 +88,6 @@ const CollaboratorsList = styled.div`
 
 const CollaboratorRow = styled.div`
     display: flex;
-    height: 80px;
     justify-content: space-between;
     align-items: center;
     background-color: rgba(29, 204, 190, 0.1);

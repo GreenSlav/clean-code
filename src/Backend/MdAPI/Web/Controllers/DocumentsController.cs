@@ -20,12 +20,12 @@ public class DocumentsController : ControllerBase
         _documentService = documentService;
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetDocument(Guid id)
+    [HttpGet("{documentId}")]
+    public async Task<IActionResult> GetDocument(Guid documentId)
     {
         var userId = this.GetUserId(); // ✅ Получаем ID пользователя из JWT
 
-        var (success, message, content, role) = await _documentService.GetDocumentAsync(id, userId);
+        var (success, message, content, role) = await _documentService.GetDocumentAsync(documentId, userId);
 
         if (!success)
         {
