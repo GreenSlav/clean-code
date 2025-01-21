@@ -40,6 +40,11 @@ public class Document
         }
     }
     
+    public void UpdateLastEdited()
+    {
+        LastEdited = DateTime.UtcNow;
+    }
+    
     public void SetPrivacy(bool isPrivate)
     {
         IsPrivate = isPrivate;

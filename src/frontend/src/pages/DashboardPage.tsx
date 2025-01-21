@@ -106,10 +106,6 @@ const fadeOut = keyframes`
 `;
 
 const TableRow = styled.tr<{ $isRemoving?: boolean }>`
-    &:nth-child(even) {
-        background-color: #1c1c1c;
-    }
-
     ${({$isRemoving}) =>
             $isRemoving &&
             css`
@@ -146,10 +142,38 @@ const ActionButton = styled.button`
     }
 `;
 
+const LoadingTextWrapper = styled.div`
+    width: 100vw;
+    height: 100vh;
+    background-color: #0b0d0e;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+`;
+
 const LoadingText = styled.p`
-    margin-top: 1rem;
     font-size: 1.5rem;
     color: #fafafa;
+    margin-top: 1rem;
+`;
+
+const Spinner = styled.div`
+    width: 50px;
+    height: 50px;
+    border: 5px solid #0d9488;
+    border-top: 5px solid #14b7a6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
 `;
 
 const fadeIn = keyframes`
@@ -208,11 +232,11 @@ const ModalOverlay = styled.div<{ $isVisible: boolean, $isClosing: boolean }>`
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.6);
-    display: ${({ $isVisible }) => ($isVisible ? "flex" : "none")};
+    display: ${({$isVisible}) => ($isVisible ? "flex" : "none")};
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: ${({ $isClosing }) => ($isClosing ? fadeOutModal : fadeInModal)} 0.3s ease-out;
+    animation: ${({$isClosing}) => ($isClosing ? fadeOutModal : fadeInModal)} 0.3s ease-out;
 `;
 
 const ModalContent = styled.div`
@@ -426,7 +450,10 @@ const DashboardPage: React.FC = () => {
     return (
         <ProtectedPage>
             {isLoading ? (
-                <LoadingText>Loading documents...</LoadingText>
+                <LoadingTextWrapper>
+                    <Spinner/>
+                    <LoadingText>Loading documents...</LoadingText>
+                </LoadingTextWrapper>
             ) : errorMessage ? (
                 <MessageWrapper>{errorMessage}</MessageWrapper>
             ) : (
@@ -441,7 +468,7 @@ const DashboardPage: React.FC = () => {
                         <thead>
                         <tr>
                             <TableHeader>Title</TableHeader>
-                            <TableHeader>Created At</TableHeader>
+                            <TableHeader>Last edited</TableHeader>
                             <TableHeader>Role</TableHeader>
                             <TableHeader>Actions</TableHeader>
                         </tr>

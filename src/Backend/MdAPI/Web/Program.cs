@@ -18,10 +18,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Укажи адрес фронтенда
-            .AllowAnyHeader()                     // Разрешить любые заголовки
-            .AllowAnyMethod()                     // Разрешить любые HTTP-методы (GET, POST и т.д.)
-            .AllowCredentials();                  // Разрешить передачу куки
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 

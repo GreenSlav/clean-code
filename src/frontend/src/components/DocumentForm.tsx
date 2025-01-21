@@ -1,7 +1,32 @@
 import React, {useEffect, useRef, useState} from "react";
-import styled from "styled-components";
+import styled, {keyframes, css} from "styled-components";
 
-const Overlay = styled.div`
+// 🔥 Анимация появления формы
+const fadeIn = keyframes`
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+`;
+
+// 🔥 Анимация исчезновения формы
+const fadeOut = keyframes`
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+`;
+
+// Затемнение фона
+const Overlay = styled.div<{ $isVisible: boolean }>`
     position: fixed;
     top: 0;
     left: 0;
@@ -12,19 +37,26 @@ const Overlay = styled.div`
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    transition: opacity 0.3s ease;
+    opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
 `;
 
-const FormContainer = styled.form`
+// 🔥 Контейнер формы с анимацией
+const FormContainer = styled.form<{ $isVisible: boolean }>`
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 15px;
+    padding: 20px;
     background: #0d2122;
     border-radius: 10px;
     color: white;
-    width: 300px;
+    width: 320px;
     position: relative;
-    
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+
+    ${({ $isVisible }) => css`
+        animation: ${$isVisible ? fadeIn : fadeOut} 0.3s ease-out forwards;
+    `}
 `;
 
 const Label = styled.label`
@@ -90,18 +122,25 @@ interface DocumentFormProps {
 const DocumentForm: React.FC<DocumentFormProps> = ({ onSubmit, onClose }) => {
     const [title, setTitle] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
-    const formRef = useRef<HTMLFormElement>(null); // Используем ref для отслеживания кликов вне формы
+    const formRef = useRef<HTMLFormElement>(null);
+    const [isVisible, setIsVisible] = useState(true); // 🔥 Состояние для анимации закрытия
+
+    // Закрытие с анимацией
+    const handleClose = () => {
+        setIsVisible(false);
+        setTimeout(() => onClose(), 300); // 🔥 Ждем завершения анимации перед закрытием
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(title, isPrivate);
-        onClose(); // Закрываем форму после отправки
+        handleClose(); // Закрываем форму после отправки
     };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (formRef.current && !formRef.current.contains(event.target as Node)) {
-                onClose();
+                handleClose();
             }
         };
 
@@ -109,12 +148,12 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSubmit, onClose }) => {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [onClose]);
+    }, []);
 
     return (
-        <Overlay>
-            <FormContainer ref={formRef} onSubmit={handleSubmit}>
-                <CloseButton onClick={onClose}>×</CloseButton>
+        <Overlay $isVisible={isVisible}>
+            <FormContainer ref={formRef} onSubmit={handleSubmit} $isVisible={isVisible}>
+                <CloseButton onClick={handleClose}>×</CloseButton>
                 <Label>
                     Title:
                     <Input

@@ -406,6 +406,22 @@ const NewDocumentEditor: React.FC = () => {
 // Открываем форму
     };
 
+    // Ctrl + S || Cmd + S
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault(); // Отменяем стандартное сохранение браузера
+                handleSaveMarkdown(); // Вызываем сохранение документа
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [handleSaveMarkdown]); // Зависимость, чтобы всегда использовать актуальную функцию
+
+
     const handleUploadMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -460,7 +476,6 @@ const NewDocumentEditor: React.FC = () => {
                                 <input type="file" accept=".md" onChange={handleUploadMarkdown}
                                        style={{display: 'none'}}/>
                             </DropdownItem>
-                            <DropdownItem onClick={closeDropdown}>Access settings</DropdownItem>
                         </DropdownContent>
                     </Dropdown>
 

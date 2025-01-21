@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import styled, {keyframes} from 'styled-components';
 import {useParams, useNavigate} from 'react-router-dom';
 import ProtectedPage from "./ProtectedPage.tsx";
@@ -78,7 +78,7 @@ const MessageWrapper = styled.div<{ color?: string }>`
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: ${({ color }) => color || "#e63946"}; // ✅ По умолчанию красный
+    background-color: ${({color}) => color || "#e63946"}; // ✅ По умолчанию красный
     color: #ffffff;
     padding: 1rem 1.5rem;
     border-radius: 8px;
@@ -128,15 +128,15 @@ const Dropdown = styled.div`
     display: inline-block;
 `;
 
-const DropdownButton = styled.button`
+const DropdownButton = styled.button<{ $isActive: boolean }>`
     background: transparent;
-    color: white;
+    color: ${({ $isActive }) => ($isActive ? "white" : "#777")}; // 🔥 Если не активна — серая
     border: none;
     position: relative;
     padding: 8px 12px;
     font-size: 1rem;
     border-radius: 5px;
-    cursor: pointer;
+    cursor: ${({ $isActive }) => ($isActive ? "pointer" : "not-allowed")}; // 🔥 Курсор меняется
     transition: color 0.3s ease;
 
     &::after {
@@ -146,17 +146,21 @@ const DropdownButton = styled.button`
         bottom: 0;
         width: 0%;
         height: 2px;
-        background: #14b7a6;
+        background: ${({ $isActive }) => ($isActive ? "#14b7a6" : "transparent")}; // 🔥 Подчеркивание только если активна
         transition: width 0.3s ease-in-out;
     }
 
-    &:hover {
-        color: #14b7a6;
-    }
+    ${({ $isActive }) =>
+            $isActive &&
+            `
+        &:hover {
+            color: #14b7a6;
+        }
 
-    &:hover::after {
-        width: 100%;
-    }
+        &:hover::after {
+            width: 100%;
+        }
+    `}
 `;
 
 const DropdownContent = styled.div<{ $isOpen: boolean }>`
@@ -235,7 +239,7 @@ const InputPanel = styled.textarea<{ readOnly: boolean }>`
     padding: 15px;
     box-sizing: border-box;
 
-    ${({ readOnly }) => readOnly && `
+    ${({readOnly}) => readOnly && `
         cursor: not-allowed;
         background: #1c1c1c;
         opacity: 0.8;
@@ -316,7 +320,7 @@ const MarkdownEditor: React.FC = () => {
         loadBlazor();
     }, []);
 
-
+    // Получение текста
     useEffect(() => {
         if (!id) {
             navigate("/documents/new");
@@ -350,7 +354,6 @@ const MarkdownEditor: React.FC = () => {
             });
     }, [id, navigate]);
 
-
     // ⏳ Когда Blazor загрузился, переносим `pendingMarkdown` в `markdownText`
     useEffect(() => {
         if (isBlazorLoaded && pendingMarkdown !== null) {
@@ -365,7 +368,7 @@ const MarkdownEditor: React.FC = () => {
         setIsLoading(false);
     }, [markdownText, isBlazorLoaded]);
 
-    const updateDocument = async () => {
+    const updateDocument = useCallback(async () => {
         if (!id) return;
 
         try {
@@ -374,10 +377,10 @@ const MarkdownEditor: React.FC = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                credentials: "include", // Передаем куки для авторизации
+                credentials: "include",
                 body: JSON.stringify({
-                    DocumentId: id, // 🔥 Передаем ID документа
-                    content: markdownText // 🔥 Передаем новый контент
+                    DocumentId: id,
+                    content: markdownText
                 }),
             });
 
@@ -385,21 +388,31 @@ const MarkdownEditor: React.FC = () => {
                 throw new Error("Failed to update document");
             }
 
-            setSuccessMessage("✅ Document saved successfully!"); // Уведомление об успешном сохранении
-            setTimeout(() => setSuccessMessage(""), 2000); // Через 2 сек убираем
+            setSuccessMessage("✅ Document saved successfully!");
+            setTimeout(() => setSuccessMessage(""), 2000);
         } catch (error) {
             setErrorMessage("❌ Error saving document: " + error.message);
-            setTimeout(() => setErrorMessage(""), 3000); // Через 3 сек убираем
-        }
-        finally {
+            setTimeout(() => setErrorMessage(""), 3000);
+        } finally {
             closeDropdown();
         }
-    };
+    }, [id, markdownText]); // 📌 `updateDocument` пересоздается только при изменении `id` или `markdownText`
 
 
-    const saveDocument = () => {
+    // Ctrl + S || Cmd + S
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (userRole !== "none" && userRole !== "viewer" && (event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault(); // Отменяем стандартное сохранение браузера
+                updateDocument(); // Вызываем сохранение документа
+            }
+        };
 
-    }
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [updateDocument]); // Зависимость, чтобы всегда использовать актуальную функцию
 
     const toggleDropdown = () => {
         if (!isDropdownOpen) {
@@ -520,13 +533,15 @@ const MarkdownEditor: React.FC = () => {
                     <CloseButton onClick={handleCloseSuccess}>×</CloseButton>
                 </MessageWrapper>
             )}
-            {isSettingsOpen && <AccessSettingsModal documentId={id} onClose={() => setIsSettingsOpen(false)} />}
+            {isSettingsOpen && <AccessSettingsModal documentId={id} onClose={() => setIsSettingsOpen(false)}/>}
             {isFormVisible && <DocumentForm onSubmit={saveDocument} onClose={() => setIsFormVisible(false)}/>}
             <EditorContainer>
                 <Toolbar>
                     {/* Меню "Файл" */}
                     <Dropdown ref={dropdownRef}>
-                        <DropdownButton onClick={toggleDropdown}>File</DropdownButton>
+                        <DropdownButton $isActive={userRole !== "viewer" && userRole !== "none"}>
+                            File
+                        </DropdownButton>
                         <DropdownContent $isOpen={isDropdownOpen} style={{display: isVisible ? "flex" : "none"}}>
                             <DropdownItem onClick={updateDocument}>Save</DropdownItem>
                             <DropdownItem>
@@ -535,6 +550,7 @@ const MarkdownEditor: React.FC = () => {
                                        style={{display: 'none'}}/>
                             </DropdownItem>
                             <DropdownItem onClick={() => setIsSettingsOpen(true)}>Access settings</DropdownItem>
+
                         </DropdownContent>
                     </Dropdown>
 

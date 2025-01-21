@@ -41,13 +41,24 @@ public class DocumentsController : ControllerBase
         var userId = this.GetUserId(); // ✅ Получаем ID пользователя из JWT
 
         var documents = await _documentService.GetUserDocumentsAsync(userId);
-    
-        return Ok(documents.Select(d => new
+        
+        return Ok(documents.Select(d =>
         {
-            id = d.Document.Id,  // ✅ Теперь правильно
-            title = d.Document.Title,
-            lastEdited = d.Document.LastEdited.ToString("dd.MM.yyyy HH:mm:ss"), 
-            role = d.Document.OwnerId == userId ? "owner" : d.Role
+            var localTime = d.Document.LastEdited.ToLocalTime();
+
+            Console.WriteLine(d.Document.Id);
+            Console.WriteLine(d.Document.Title);
+            Console.WriteLine($"UTC: {d.Document.LastEdited:dd.MM.yyyy HH:mm:ss}");
+            Console.WriteLine($"Local: {localTime:dd.MM.yyyy HH:mm:ss}");
+            Console.WriteLine("=========");
+
+            return new
+            {
+                id = d.Document.Id,
+                title = d.Document.Title,
+                lastEdited = localTime.ToString("dd.MM.yyyy HH:mm:ss"), // ✅ Теперь верное время
+                role = d.Document.OwnerId == userId ? "owner" : d.Role
+            };
         }));
     }
     
@@ -63,6 +74,15 @@ public class DocumentsController : ControllerBase
         }
 
         return Ok(settings);
+    }
+    
+    [HttpGet("{documentId}/role")]
+    public async Task<IActionResult> GetUserRole(Guid documentId)
+    {
+        var userId = this.GetUserId(); // ✅ Получаем ID пользователя из JWT
+        var role = await _documentService.GetUserRoleAsync(documentId, userId);
+
+        return Ok(new { role });
     }
     
     [HttpPost("{documentId}/collaborators")]
@@ -123,9 +143,9 @@ public class DocumentsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateDocument(Guid id, [FromBody] UpdateDocumentRequest request)
     {
-        var userId = this.GetUserId(); // ✅ Получаем ID пользователя из JWT
+        var userId = this.GetUserId();
 
-        if (id != request.DocumentId) // ✅ Проверяем, совпадает ли ID документа
+        if (id != request.DocumentId)
         {
             return BadRequest(new { message = "Document ID mismatch." });
         }

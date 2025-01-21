@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Models;
 using Domain.Entities;
 
 namespace Application.Services;
@@ -50,7 +51,7 @@ public class DocumentService
         return (false, "Access denied.", "", "none"); // ❌ Доступ запрещён
     }
     
-    public async Task<(bool Success, object? Settings, string Message)> GetDocumentSettingsAsync(Guid documentId, Guid userId)
+    public async Task<(bool Success, DocumentSettingsResponse? Settings, string Message)> GetDocumentSettingsAsync(Guid documentId, Guid userId)
     {
         var document = await _documentRepository.GetByIdAsync(documentId);
         if (document == null)
@@ -58,29 +59,56 @@ public class DocumentService
             return (false, null, "Document not found.");
         }
 
-        // ✅ Проверяем, является ли пользователь владельцем или коллаборатором
-        var collaborator = await _documentRepository.GetCollaboratorAsync(documentId, userId);
-        if (document.OwnerId != userId && collaborator == null)
+        // ✅ Определяем роль текущего пользователя
+        var userRole = document.OwnerId == userId 
+            ? "owner" 
+            : await _documentRepository.GetUserRoleAsync(documentId, userId);
+
+        if (userRole != "owner" && userRole != "editor")
         {
             return (false, null, "Access denied.");
         }
 
+        // ✅ Загружаем список коллабораторов, исключая текущего пользователя
         var collaborators = await _documentRepository.GetCollaboratorsAsync(documentId);
-
-        var settings = new
-        {
-            Title = document.Title,
-            IsPrivate = document.IsPrivate,
-            Collaborators = collaborators.Select(c => new
+        var filteredCollaborators = collaborators
+            .Where(c => c.UserId != userId) // Исключаем текущего пользователя
+            .Select(c => new CollaboratorDto
             {
                 Id = c.UserId,
                 Username = c.User.Username,
                 Role = c.Role
-            }).ToList()
+            })
+            .ToList();
+
+        var response = new DocumentSettingsResponse
+        {
+            Title = document.Title,
+            IsPrivate = document.IsPrivate,
+            Collaborators = filteredCollaborators,
+            RequesterRole = userRole // 🔥 Добавляем роль того, кто запросил настройки
         };
 
-        return (true, settings, "Document settings retrieved successfully.");
+        return (true, response, "Settings fetched successfully.");
     }
+    
+    public async Task<string> GetUserRoleAsync(Guid documentId, Guid userId)
+    {
+        var document = await _documentRepository.GetByIdAsync(documentId);
+        if (document == null)
+        {
+            return "none"; // ❌ Документ не найден
+        }
+
+        if (document.OwnerId == userId)
+        {
+            return "owner"; // ✅ Владелец документа
+        }
+
+        var collaborator = await _documentRepository.GetCollaboratorAsync(documentId, userId);
+        return collaborator?.Role ?? "none"; // ✅ Если коллаборатор — вернуть его роль, иначе "none"
+    }
+    
     
     public async Task<(bool Success, object? NewCollaborator, string Message)> AddCollaboratorAsync(Guid documentId, Guid ownerId, string username, string role)
     {
@@ -125,14 +153,16 @@ public class DocumentService
     public async Task<List<DocumentWithRole>> GetUserDocumentsAsync(Guid userId)
     {
         // ✅ Получаем все документы, где пользователь = владелец
-        var ownedDocs = await _documentRepository.GetByOwnerIdAsync(userId);
+        //var ownedDocs = await _documentRepository.GetByOwnerIdAsync(userId);
 
         // ✅ Получаем все документы, где пользователь = `editor` или `viewer`
         var collaboratedDocs = await _documentRepository.GetCollaboratorDocumentsAsync(userId);
 
-        return ownedDocs.Select(doc => new DocumentWithRole(doc, "owner"))
-            .Concat(collaboratedDocs)
-            .ToList();
+        // return ownedDocs.Select(doc => new DocumentWithRole(doc, "owner"))
+        //     .Concat(collaboratedDocs)
+        //     .ToList();
+
+        return collaboratedDocs;
     }
 
 // ✅ Создание документа
@@ -175,7 +205,7 @@ public class DocumentService
         return (true, "Success", content);
     }
     
-    public async Task<(bool Success, string Message)> UpdateDocumentSettingsAsync(Guid documentId, Guid ownerId, UpdateDocumentSettingsRequest request)
+    public async Task<(bool Success, string Message)> UpdateDocumentSettingsAsync(Guid documentId, Guid userId, UpdateDocumentSettingsRequest request)
     {
         var document = await _documentRepository.GetByIdAsync(documentId);
         if (document == null)
@@ -183,23 +213,45 @@ public class DocumentService
             return (false, "Document not found.");
         }
 
-        // ✅ Только владелец документа может обновлять настройки
-        if (document.OwnerId != ownerId)
+        // ✅ Только `owner` и `editor` могут менять настройки
+        var userRole = document.OwnerId == userId 
+            ? "owner" 
+            : await _documentRepository.GetUserRoleAsync(documentId, userId);
+
+        if (userRole != "owner" && userRole != "editor")
         {
             return (false, "Access denied.");
         }
 
-        // ✅ Обновляем название и приватность
-        document.UpdateTitle(request.Title);
-        document.SetPrivacy(request.IsPrivate);
+        // ✅ Обновляем название и приватность (только `owner`)
+        if (userRole == "owner")
+        {
+            document.UpdateTitle(request.Title);
+            document.SetPrivacy(request.IsPrivate);
+        }
+
+        document.UpdateLastEdited();
         await _documentRepository.UpdateAsync(document);
 
-        // ✅ Обновляем роли коллабораторов
+        // ✅ Обновляем роли коллабораторов (но только тех, кто ниже по уровню)
         foreach (var collab in request.Collaborators)
         {
             var existingCollab = await _documentRepository.GetCollaboratorAsync(documentId, collab.Id);
             if (existingCollab != null)
             {
+                // Запрещаем повышать до `owner`
+                if (collab.Role == "owner")
+                {
+                    return (false, "Cannot promote collaborators to owner.");
+                }
+
+                // ❌ Нельзя изменять роль людей выше тебя
+                var targetRole = existingCollab.Role;
+                if (userRole == "editor" && targetRole == "editor")
+                {
+                    return (false, "Editors cannot change roles of other editors.");
+                }
+
                 existingCollab.UpdateRole(collab.Role);
                 await _documentRepository.UpdateCollaboratorAsync(existingCollab);
             }
@@ -207,22 +259,6 @@ public class DocumentService
 
         return (true, "Document settings updated successfully.");
     }
-
-// ✅ Обновление документа
-    // public async Task<(bool Success, string Message)> UpdateDocumentAsync(Guid documentId, Guid userId, string content)
-    // {
-    //     var document = await _documentRepository.GetByIdAsync(documentId);
-    //     if (document == null || document.OwnerId != userId)
-    //     {
-    //         return (false, "Access denied.");
-    //     }
-    //
-    //     string newS3Path = await _fileStorageRepository.UploadFileAsync(userId, content);
-    //     document.UpdateS3Path(newS3Path);
-    //     await _documentRepository.UpdateAsync(document);
-    //
-    //     return (true, "Document updated successfully.");
-    // }
     
     public async Task<(bool Success, string Message)> UpdateDocumentAsync(Guid documentId, Guid userId, string content)
     {
@@ -237,8 +273,12 @@ public class DocumentService
             return (false, "Access denied.");
         }
 
+        // ✅ Загружаем новый контент в MinIO
         string newS3Path = await _fileStorageRepository.UploadFileAsync(userId, content);
         document.UpdateS3Path(newS3Path);
+
+        // ✅ Обновляем `LastEdited`
+        document.UpdateLastEdited();
 
         await _documentRepository.UpdateAsync(document);
     
