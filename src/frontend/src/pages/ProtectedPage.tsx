@@ -75,6 +75,7 @@ const LoadingText = styled.p`
 `;
 
 const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({children}) => {
+    const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL;
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [showMessage, setShowMessage] = useState(false);
     const navigate = useNavigate();
@@ -82,7 +83,7 @@ const ProtectedPage: React.FC<{ children: React.ReactNode }> = ({children}) => {
     useEffect(() => {
         const verifyUser = async () => {
             try {
-                const response = await fetch('http://localhost:5001/api/auth/verify', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
                     method: 'GET',
                     credentials: 'include', // Для отправки куки
                 });

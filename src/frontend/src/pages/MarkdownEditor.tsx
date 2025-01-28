@@ -2,7 +2,6 @@ import React, {useEffect, useState, useRef, useCallback} from 'react';
 import styled, {keyframes} from 'styled-components';
 import {useParams, useNavigate} from 'react-router-dom';
 import ProtectedPage from "./ProtectedPage.tsx";
-import DocumentForm from "../components/DocumentForm.tsx";
 import AccessSettingsModal from "../components/AccessSettingsModal.tsx";
 
 
@@ -299,12 +298,12 @@ const MarkdownEditor: React.FC = () => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [dividerX, setDividerX] = useState(50);
     const [isDragging, setIsDragging] = useState(false);
-    const backendUrl = "http://localhost:5001"; // Blazor WebAssembly сервер
+    const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL;
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isVisible, setIsVisible] = useState(false); // Управляет отображением
-    const [isFormVisible, setIsFormVisible] = useState(false); // Управляем формой
+    //const [isFormVisible, setIsFormVisible] = useState(false); // Управляем формой
     const [pendingMarkdown, setPendingMarkdown] = useState<string | null>(null); // Временный Markdown (ожидание Blazor)
     const [isBlazorLoaded, setIsBlazorLoaded] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -322,11 +321,11 @@ const MarkdownEditor: React.FC = () => {
                 }
 
                 console.log("Загружаем Blazor WebAssembly...");
-                await import(`${backendUrl}/api/blazor/resource/blazor.webassembly.js`);
+                await import(`${API_BASE_URL}/api/blazor/resource/blazor.webassembly.js`);
 
                 await window.Blazor.start({
-                    loadBootResource: (type, name, defaultUri, integrity) => {
-                        return `${backendUrl}/api/blazor/resource/${name}`;
+                    loadBootResource: (_type: string, name: string, _defaultUri: string, _integrity: string): string => {
+                        return `${API_BASE_URL}/api/blazor/resource/${name}`;
                     }
                 });
 
@@ -350,7 +349,7 @@ const MarkdownEditor: React.FC = () => {
             return;
         }
 
-        fetch(`http://localhost:5001/api/documents/${id}`, {
+        fetch(`${API_BASE_URL}/api/documents/${id}`, {
             method: "GET",
             credentials: "include",
         })
@@ -395,7 +394,7 @@ const MarkdownEditor: React.FC = () => {
         if (!id) return;
 
         try {
-            const response = await fetch(`http://localhost:5001/api/documents/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/documents/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -413,8 +412,8 @@ const MarkdownEditor: React.FC = () => {
 
             setSuccessMessage("✅ Document saved successfully!");
             setTimeout(() => setSuccessMessage(""), 2000);
-        } catch (error) {
-            setErrorMessage("❌ Error saving document: " + error.message);
+        } catch (error: unknown) {
+            setErrorMessage("❌ Error saving document: " + error);
             setTimeout(() => setErrorMessage(""), 3000);
         } finally {
             closeDropdown();
@@ -556,8 +555,8 @@ const MarkdownEditor: React.FC = () => {
                     <CloseButton onClick={handleCloseSuccess}>×</CloseButton>
                 </MessageWrapper>
             )}
-            {isSettingsOpen && <AccessSettingsModal documentId={id} onClose={() => setIsSettingsOpen(false)}/>}
-            {isFormVisible && <DocumentForm onSubmit={saveDocument} onClose={() => setIsFormVisible(false)}/>}
+            {isSettingsOpen && id && <AccessSettingsModal documentId={id} onClose={() => setIsSettingsOpen(false)}/>}
+            {/*{isFormVisible && <DocumentForm onSubmit={saveDocument} onClose={() => setIsFormVisible(false)}/>}*/}
             <EditorContainer>
                 <Toolbar>
                     {/* Меню "Файл" */}

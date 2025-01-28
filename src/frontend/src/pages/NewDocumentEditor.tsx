@@ -264,7 +264,7 @@ const NewDocumentEditor: React.FC = () => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [dividerX, setDividerX] = useState(50);
     const [isDragging, setIsDragging] = useState(false);
-    const backendUrl = "http://localhost:5001"; // Blazor WebAssembly сервер
+    const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL;
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isVisible, setIsVisible] = useState(false); // Управляет отображением
@@ -273,7 +273,7 @@ const NewDocumentEditor: React.FC = () => {
 
     const saveNewDocument = async (title: string, isPrivate: boolean) => {
         try {
-            const response = await fetch("http://localhost:5001/api/documents/create", {
+            const response = await fetch(`${API_BASE_URL}/api/documents/create`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -351,11 +351,11 @@ const NewDocumentEditor: React.FC = () => {
                 }
 
                 console.log("Загружаем Blazor WebAssembly...");
-                await import(`${backendUrl}/api/blazor/resource/blazor.webassembly.js`);
+                await import(`${API_BASE_URL}/api/blazor/resource/blazor.webassembly.js`);
 
                 await window.Blazor.start({
-                    loadBootResource: (type, name, defaultUri, integrity) => {
-                        return `${backendUrl}/api/blazor/resource/${name}`;
+                    loadBootResource: (_type: string, name: string, _defaultUri: string, _integrity: string): string => {
+                        return `${API_BASE_URL}/api/blazor/resource/${name}`;
                     }
                 });
 

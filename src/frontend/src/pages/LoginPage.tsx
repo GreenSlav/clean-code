@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import styled, {keyframes} from 'styled-components';
 import {useNavigate} from 'react-router-dom';
 
@@ -129,12 +129,17 @@ const CloseButton = styled.button`
 `;
 
 const LoginPage: React.FC = () => {
+    const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL;
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showError, setShowError] = useState(false); // Управляет отображением ошибки
     const [isHiding, setIsHiding] = useState(false); // Управляет анимацией скрытия
     const navigate = useNavigate(); // Хук для перенаправления
+
+    useEffect(() => {
+        console.warn(`Вот мое url из докера!!!!! ----- ${API_BASE_URL}`);
+    });
 
     const handleError = (message: string) => {
         setShowError(false); // Скрываем текущую ошибку
@@ -158,7 +163,7 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
 
         try {
-            const response = await fetch('http://localhost:5001/api/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

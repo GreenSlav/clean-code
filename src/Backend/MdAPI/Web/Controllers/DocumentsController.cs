@@ -46,12 +46,6 @@ public class DocumentsController : ControllerBase
         {
             var localTime = d.Document.LastEdited.ToLocalTime();
 
-            Console.WriteLine(d.Document.Id);
-            Console.WriteLine(d.Document.Title);
-            Console.WriteLine($"UTC: {d.Document.LastEdited:dd.MM.yyyy HH:mm:ss}");
-            Console.WriteLine($"Local: {localTime:dd.MM.yyyy HH:mm:ss}");
-            Console.WriteLine("=========");
-
             return new
             {
                 id = d.Document.Id,

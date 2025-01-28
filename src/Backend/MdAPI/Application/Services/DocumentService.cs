@@ -26,14 +26,14 @@ public class DocumentService
             return (false, "Document not found.", "", "none");
         }
 
-        // ✅ Если пользователь = владелец, он "owner"
+        // Если пользователь = владелец, он "owner"
         if (document.OwnerId == userId)
         {
             var content = await _fileStorageRepository.DownloadFileAsync(document.S3Path);
             return (true, "Owner access granted.", content, "owner");
         }
 
-        // ✅ Получаем роль пользователя из `DocumentCollaborators`
+        // Получаем роль пользователя из `DocumentCollaborators`
         var collaboratorRole = await _documentRepository.GetUserRoleAsync(documentId, userId);
         if (collaboratorRole != null)
         {
@@ -41,7 +41,7 @@ public class DocumentService
             return (true, "Collaborator access granted.", content, collaboratorRole);
         }
         
-        // ✅ Если документ публичный, разрешаем просмотр (роль `viewer`)
+        // Если документ публичный, разрешаем просмотр (роль `viewer`)
         if (!document.IsPrivate)
         {
             var content = await _fileStorageRepository.DownloadFileAsync(document.S3Path);
@@ -59,7 +59,7 @@ public class DocumentService
             return (false, null, "Document not found.");
         }
 
-        // ✅ Определяем роль текущего пользователя
+        // Определяем роль текущего пользователя
         var userRole = document.OwnerId == userId 
             ? "owner" 
             : await _documentRepository.GetUserRoleAsync(documentId, userId);
@@ -69,7 +69,7 @@ public class DocumentService
             return (false, null, "Access denied.");
         }
 
-        // ✅ Загружаем список коллабораторов, исключая текущего пользователя
+        // Загружаем список коллабораторов, исключая текущего пользователя
         var collaborators = await _documentRepository.GetCollaboratorsAsync(documentId);
         var filteredCollaborators = collaborators
             .Where(c => c.UserId != userId) // Исключаем текущего пользователя
@@ -97,12 +97,12 @@ public class DocumentService
         var document = await _documentRepository.GetByIdAsync(documentId);
         if (document == null)
         {
-            return "none"; // ❌ Документ не найден
+            return "none"; // Документ не найден
         }
 
         if (document.OwnerId == userId)
         {
-            return "owner"; // ✅ Владелец документа
+            return "owner"; // Владелец документа
         }
 
         var collaborator = await _documentRepository.GetCollaboratorAsync(documentId, userId);
@@ -118,7 +118,7 @@ public class DocumentService
             return (false, null, "Document not found.");
         }
 
-        // ✅ Только владелец документа может добавлять коллабораторов
+        // Только владелец документа может добавлять коллабораторов
         if (document.OwnerId != ownerId)
         {
             return (false, null, "Access denied.");
@@ -130,14 +130,14 @@ public class DocumentService
             return (false, null, "User not found.");
         }
 
-        // ✅ Проверяем, не является ли пользователь уже коллаборатором
+        // Проверяем, не является ли пользователь уже коллаборатором
         var existingCollaborator = await _documentRepository.GetCollaboratorAsync(documentId, user.Id);
         if (existingCollaborator != null)
         {
             return (false, null, "User is already a collaborator.");
         }
 
-        // ✅ Добавляем нового коллаборатора
+        // Добавляем нового коллаборатора
         await _documentRepository.AddCollaboratorAsync(documentId, user.Id, role);
 
         var newCollaborator = new
@@ -152,20 +152,13 @@ public class DocumentService
     
     public async Task<List<DocumentWithRole>> GetUserDocumentsAsync(Guid userId)
     {
-        // ✅ Получаем все документы, где пользователь = владелец
-        //var ownedDocs = await _documentRepository.GetByOwnerIdAsync(userId);
-
-        // ✅ Получаем все документы, где пользователь = `editor` или `viewer`
+        // Получаем все документы, где пользователь = `editor` или `viewer`
         var collaboratedDocs = await _documentRepository.GetCollaboratorDocumentsAsync(userId);
-
-        // return ownedDocs.Select(doc => new DocumentWithRole(doc, "owner"))
-        //     .Concat(collaboratedDocs)
-        //     .ToList();
 
         return collaboratedDocs;
     }
 
-// ✅ Создание документа
+    // Создание документа
     public async Task<(bool Success, string Message, Guid? DocumentId)> CreateDocumentAsync(Guid userId, string title,
         string content, bool isPrivate)
     {
@@ -179,7 +172,7 @@ public class DocumentService
         var document = new Document(title, userId, s3Path, isPrivate);
         await _documentRepository.AddAsync(document);
 
-        // ✅ Добавляем владельца в `DocumentCollaborators` с ролью `owner`
+        // Добавляем владельца в `DocumentCollaborators` с ролью `owner`
         await _documentRepository.AddCollaboratorAsync(document.Id, userId, "owner");
 
         return (true, "Document created successfully.", document.Id);
@@ -193,14 +186,14 @@ public class DocumentService
             return (false, "Document not found.", "");
         }
 
-        // ✅ Проверяем доступ
+        // Проверяем доступ
         var hasAccess = document.OwnerId == userId || await _documentRepository.IsCollaboratorAsync(documentId, userId);
         if (!hasAccess)
         {
             return (false, "Access denied.", "");
         }
 
-        // ✅ Загружаем содержимое из MinIO
+        // Загружаем содержимое из MinIO
         var content = await _fileStorageRepository.DownloadFileAsync(document.S3Path);
         return (true, "Success", content);
     }
@@ -213,7 +206,7 @@ public class DocumentService
             return (false, "Document not found.");
         }
 
-        // ✅ Только `owner` и `editor` могут менять настройки
+        // Только `owner` и `editor` могут менять настройки
         var userRole = document.OwnerId == userId 
             ? "owner" 
             : await _documentRepository.GetUserRoleAsync(documentId, userId);
@@ -223,7 +216,7 @@ public class DocumentService
             return (false, "Access denied.");
         }
 
-        // ✅ Обновляем название и приватность (только `owner`)
+        // Обновляем название и приватность (только `owner`)
         if (userRole == "owner")
         {
             document.UpdateTitle(request.Title);
@@ -233,7 +226,7 @@ public class DocumentService
         document.UpdateLastEdited();
         await _documentRepository.UpdateAsync(document);
 
-        // ✅ Обновляем роли коллабораторов (но только тех, кто ниже по уровню)
+        // Обновляем роли коллабораторов (но только тех, кто ниже по уровню)
         foreach (var collab in request.Collaborators)
         {
             var existingCollab = await _documentRepository.GetCollaboratorAsync(documentId, collab.Id);
@@ -245,7 +238,7 @@ public class DocumentService
                     return (false, "Cannot promote collaborators to owner.");
                 }
 
-                // ❌ Нельзя изменять роль людей выше тебя
+                // Нельзя изменять роль людей выше тебя
                 var targetRole = existingCollab.Role;
                 if (userRole == "editor" && targetRole == "editor")
                 {
@@ -273,11 +266,11 @@ public class DocumentService
             return (false, "Access denied.");
         }
 
-        // ✅ Загружаем новый контент в MinIO
+        // Загружаем новый контент в MinIO
         string newS3Path = await _fileStorageRepository.UploadFileAsync(userId, content);
         document.UpdateS3Path(newS3Path);
 
-        // ✅ Обновляем `LastEdited`
+        // Обновляем `LastEdited`
         document.UpdateLastEdited();
 
         await _documentRepository.UpdateAsync(document);
@@ -293,19 +286,19 @@ public class DocumentService
             return (false, "Document not found.");
         }
 
-        // ✅ Только владелец (`owner`) может удалить документ
+        // Только владелец (`owner`) может удалить документ
         if (document.OwnerId != userId)
         {
             return (false, "Access denied.");
         }
 
-        // ✅ Удаляем файл из MinIO
+        // Удаляем файл из MinIO
         await _fileStorageRepository.DeleteFileAsync(document.S3Path);
 
-        // ✅ Удаляем всех коллабораторов
+        // Удаляем всех коллабораторов
         await _documentRepository.RemoveCollaboratorsAsync(documentId);
 
-        // ✅ Удаляем сам документ
+        // Удаляем сам документ
         await _documentRepository.DeleteAsync(documentId);
 
         return (true, "Document deleted successfully.");
@@ -319,7 +312,7 @@ public class DocumentService
             return (false, "Document not found.");
         }
 
-        // ✅ Только владелец может удалять коллабораторов
+        // Только владелец может удалять коллабораторов
         if (document.OwnerId != ownerId)
         {
             return (false, "Access denied.");
@@ -331,7 +324,7 @@ public class DocumentService
             return (false, "Collaborator not found.");
         }
 
-        // ✅ Удаляем коллаборатора
+        // Удаляем коллаборатора
         await _documentRepository.RemoveCollaboratorAsync(collaborator);
 
         return (true, "Collaborator removed successfully.");

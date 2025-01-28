@@ -206,6 +206,7 @@ const ROLE_PRIORITY = {
 };
 
 const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose}) => {
+    const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL;
     const [title, setTitle] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
     const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
@@ -216,7 +217,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     const [requesterRole, setRequesterRole] = useState<"viewer" | "editor" | "owner">("viewer");
 
     useEffect(() => {
-        fetch(`http://localhost:5001/api/documents/${documentId}/settings`, {
+        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/settings`, {
             method: "GET",
             credentials: "include",
         })
@@ -224,7 +225,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
             .then((data) => {
                 setTitle(data.title);
                 setIsPrivate(data.isPrivate);
-                setCollaborators(data.collaborators.filter(c => c.username !== "currentUser")); // 🔥 Фильтруем себя
+                setCollaborators(data.collaborators.filter((c: Collaborator) => c.username !== "currentUser")); // 🔥 Фильтруем себя
                 setRequesterRole(data.requesterRole);
                 setIsLoading(false);
             })
@@ -245,7 +246,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     const addCollaborator = () => {
         if (!newUsername.trim()) return;
 
-        fetch(`http://localhost:5001/api/documents/${documentId}/collaborators`, {
+        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/collaborators`, {
             method: "POST",
             credentials: "include",
             headers: {"Content-Type": "application/json"},
@@ -266,7 +267,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     const removeCollaborator = (userId: string, userRole: string) => {
         if (ROLE_PRIORITY[userRole as keyof typeof ROLE_PRIORITY] >= ROLE_PRIORITY[requesterRole]) return; // 🔥 Проверка прав
 
-        fetch(`http://localhost:5001/api/documents/${documentId}/collaborators/${userId}`, {
+        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/collaborators/${userId}`, {
             method: "DELETE",
             credentials: "include",
         })
@@ -278,7 +279,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     };
 
     const applySettings = () => {
-        fetch(`http://localhost:5001/api/documents/${documentId}/settings`, {
+        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/settings`, {
             method: "PUT",
             credentials: "include",
             headers: {"Content-Type": "application/json"},

@@ -144,6 +144,7 @@ const SuccessMessage = styled.div`
 `;
 
 const RegisterPage: React.FC = () => {
+    const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL;
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -182,7 +183,7 @@ const RegisterPage: React.FC = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5001/api/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

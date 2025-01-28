@@ -1,31 +1,37 @@
-# Frontend/Dockerfile
-
-# Этап сборки
-FROM node:18 AS build
+# Этап сборки фронтенда
+FROM node:20 AS build
 WORKDIR /app
 
-# Копирование package.json и package-lock.json
-COPY ./wasm_proj/package*.json ./
-RUN npm install
+# Копируем package.json и package-lock.json
+COPY package.json package-lock.json ./
 
-# Передача переменной на этапе сборки
+# Удаляем старый package-lock.json (если он содержит macOS-специфичные зависимости)
+RUN rm -f package-lock.json
+
+# Устанавливаем зависимости строго для Linux
+RUN npm install --force --legacy-peer-deps
+
+# Передаем переменную окружения на этапе сборки
 ARG VITE_REACT_APP_BACKEND_URL
 ENV VITE_REACT_APP_BACKEND_URL=${VITE_REACT_APP_BACKEND_URL}
 
-# Копирование исходного кода
-COPY ./wasm_proj ./
+# Копируем исходный код
+COPY . .
 
-# Сборка приложения
+# Сборка фронтенда
 RUN npm run build
 
-# Этап продакшн
 FROM nginx:alpine AS production
 
-# Копирование собранного приложения из папки dist в папку Nginx
+# Копируем конфиг Nginx
+# 📌 Копируем конфиг Nginx в правильную папку `/etc/nginx/conf.d/`
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# 📌 Копируем собранное приложение в Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Открытие порта
+# Открываем порт
 EXPOSE 80
 
-# Запуск Nginx
+# Запускаем Nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -48,9 +48,6 @@ const HomePage: React.FC = () => {
     return (
         <Wrapper>
             <Block>
-                {/*<LogoWrapper>*/}
-                {/*    <Logo src={"/favicon.png"}></Logo>*/}
-                {/*</LogoWrapper>*/}
                 <TypingAndAuth>
                     <Typing></Typing>
                     <AuthSection></AuthSection>

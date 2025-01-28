@@ -36,19 +36,6 @@ const Button = styled.button`
     }
 `;
 
-const ButtonWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    height: 100%;
-`
-
-const DownloadButton = styled.img`
-    display: inline-block;
-    object-fit: contain;
-    height: 20px;
-`
-
 const DeleteButton = styled.button`
     height: 100%;
     padding: 6px 12px;
@@ -119,11 +106,6 @@ const TableCell = styled.td`
     text-align: center;
 `;
 
-const InsideCellWrapper = styled.div`
-    width: 100%;
-    height: 100%;
-    display: inline-block;
-`
 
 const ActionButton = styled.button`
     height: 100%;
@@ -303,6 +285,7 @@ interface DocumentType {
 }
 
 const DashboardPage: React.FC = () => {
+    const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL;
     const navigate = useNavigate();
     const [documents, setDocuments] = useState<DocumentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -313,7 +296,7 @@ const DashboardPage: React.FC = () => {
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch("http://localhost:5001/api/documents", {
+        fetch(`${API_BASE_URL}/api/documents`, {
             method: "GET",
             credentials: "include", // Отправка куки для аутентификации
         })
@@ -325,8 +308,8 @@ const DashboardPage: React.FC = () => {
             })
             .then(data => {
                 // Убираем дубликаты перед сохранением
-                const uniqueDocs = Array.from(new Set(data.map(doc => doc.id)))
-                    .map(id => data.find(doc => doc.id === id));
+                const uniqueDocs = Array.from(new Set(data.map((doc: DocumentType) => doc.id)))
+                    .map(id => data.find((doc: DocumentType) => doc.id === id));
                 setDocuments(uniqueDocs);
                 setIsLoading(false);
             })
@@ -339,7 +322,7 @@ const DashboardPage: React.FC = () => {
 
     const handleLogout = async () => {
         try {
-            const response = await fetch("http://localhost:5001/api/auth/logout", {
+            const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
                 method: "POST",
                 credentials: "include", // Для отправки куки
             });
@@ -352,9 +335,9 @@ const DashboardPage: React.FC = () => {
         }
     };
 
-    const downloadDocument = async (documentId) => {
+    const downloadDocument = async (documentId: string) => {
         try {
-            const response = await fetch(`http://localhost:5001/api/documents/${documentId}/download`, {
+            const response = await fetch(`${API_BASE_URL}/api/documents/${documentId}/download`, {
                 method: "GET",
                 credentials: "include",
             });
@@ -371,40 +354,46 @@ const DashboardPage: React.FC = () => {
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
-        } catch (error) {
-            setErrorMessage("Error downloading document: " + error.message)
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setErrorMessage("Error downloading document: " + error.message);
+            } else {
+                setErrorMessage("Unknown error occurred.");
+            }
             setTimeout(() => setErrorMessage(""), 2000);
         }
     };
 
-    const deleteDocument = async (documentId: string) => {
-        if (!window.confirm("Are you sure you want to delete this document?")) return;
+    // const deleteDocument = async (documentId: string) => {
+    //     if (!window.confirm("Are you sure you want to delete this document?")) return;
+    //
+    //     setRemovingDocument(documentId); // 🔴 Запускаем анимацию
+    //
+    //     setTimeout(async () => {
+    //         try {
+    //             const response = await fetch(`${API_BASE_URL}/api/documents/${documentId}`, {
+    //                 method: "DELETE",
+    //                 credentials: "include",
+    //             });
+    //
+    //             if (!response.ok) {
+    //                 throw new Error("Failed to delete document");
+    //             }
+    //
+    //             setDocuments(prevDocs => {
+    //                 const updatedDocs = prevDocs.filter(doc => doc.id !== documentId);
+    //                 console.log("Updated Documents List:", updatedDocs);
+    //                 return updatedDocs;
+    //             });
+    //             setRemovingDocument(null); // Сбрасываем состояние
+    //         } catch (error) {
+    //             //alert("Error deleting document: " + error.message);
+    //             setRemovingDocument(null); // В случае ошибки возвращаем всё обратно
+    //         }
+    //     }, 400); // ⏳ Ждём 400 мс перед удалением
+    // };
 
-        setRemovingDocument(documentId); // 🔴 Запускаем анимацию
 
-        setTimeout(async () => {
-            try {
-                const response = await fetch(`http://localhost:5001/api/documents/${documentId}`, {
-                    method: "DELETE",
-                    credentials: "include",
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to delete document");
-                }
-
-                setDocuments(prevDocs => {
-                    const updatedDocs = prevDocs.filter(doc => doc.id !== documentId);
-                    console.log("Updated Documents List:", updatedDocs);
-                    return updatedDocs;
-                });
-                setRemovingDocument(null); // Сбрасываем состояние
-            } catch (error) {
-                //alert("Error deleting document: " + error.message);
-                setRemovingDocument(null); // В случае ошибки возвращаем всё обратно
-            }
-        }, 400); // ⏳ Ждём 400 мс перед удалением
-    };
 
     const openConfirmModal = (documentId: string) => {
         setSelectedDocId(documentId);
@@ -426,7 +415,7 @@ const DashboardPage: React.FC = () => {
 
         setTimeout(async () => {
             try {
-                const response = await fetch(`http://localhost:5001/api/documents/${selectedDocId}`, {
+                const response = await fetch(`${API_BASE_URL}/api/documents/${selectedDocId}`, {
                     method: "DELETE",
                     credentials: "include",
                 });
@@ -438,8 +427,8 @@ const DashboardPage: React.FC = () => {
                 setDocuments(prevDocs => prevDocs.filter(doc => doc.id !== selectedDocId));
                 setRemovingDocument(null);
                 closeConfirmModal();
-            } catch (error) {
-                //("Error deleting document: " + error.message);
+            } catch (error: unknown) {
+                console.log("Error deleting document: " + error);
                 setRemovingDocument(null);
                 closeConfirmModal();
             }

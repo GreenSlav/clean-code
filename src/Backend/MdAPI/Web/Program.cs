@@ -1,6 +1,7 @@
 using System.Text;
 using Application.Interfaces;
 using Application.Services;
+using DotNetEnv;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Services;
@@ -8,17 +9,24 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5199"; // Читаем переменную окружения, по умолчанию 5199
+var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? $"http://0.0.0.0:{port}";
+
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls(urls); // Настраиваем запуск на правильный порт
 
 var envLoader = new EnvService();
 builder.Services.AddSingleton(envLoader);
+
+var allowedInsideOrigin = Environment.GetEnvironmentVariable("ALLOWED_INSIDE") ?? "http://localhost:80";
+var allowedOutsideOrigin = Environment.GetEnvironmentVariable("ALLOWED_OUTSIDE") ?? "http://localhost:3000";
 
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOutsideOrigin, allowedInsideOrigin)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -104,10 +112,13 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync(); // Асинхронная миграция
 }
 
-app.UseStaticFiles();
-app.UseCors("AllowFrontend");
-app.UseHttpsRedirection();
+app.UseRouting(); // ✅ Добавь явно, иначе CORS не применяется
+app.UseCors("AllowFrontend"); 
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseStaticFiles();
+app.UseHttpsRedirection();
 app.MapControllers();
-await app.RunAsync(); // Асинхронный запуск приложения
+await app.RunAsync();
