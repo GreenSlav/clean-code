@@ -217,7 +217,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     const [requesterRole, setRequesterRole] = useState<"viewer" | "editor" | "owner">("viewer");
 
     useEffect(() => {
-        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/settings`, {
+        fetch(`${API_BASE_URL}/api/documents/${documentId}/settings`, {
             method: "GET",
             credentials: "include",
         })
@@ -233,7 +233,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
                 console.error("Error fetching settings:", err);
                 setIsLoading(false);
             });
-    }, [documentId]);
+    }, [API_BASE_URL, documentId]);
 
     const handleRoleChange = (userId: string, newRole: string) => {
         setCollaborators((prev) =>
@@ -246,7 +246,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     const addCollaborator = () => {
         if (!newUsername.trim()) return;
 
-        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/collaborators`, {
+        fetch(`${API_BASE_URL}/api/documents/${documentId}/collaborators`, {
             method: "POST",
             credentials: "include",
             headers: {"Content-Type": "application/json"},
@@ -267,7 +267,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     const removeCollaborator = (userId: string, userRole: string) => {
         if (ROLE_PRIORITY[userRole as keyof typeof ROLE_PRIORITY] >= ROLE_PRIORITY[requesterRole]) return; // 🔥 Проверка прав
 
-        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/collaborators/${userId}`, {
+        fetch(`${API_BASE_URL}/api/documents/${documentId}/collaborators/${userId}`, {
             method: "DELETE",
             credentials: "include",
         })
@@ -279,7 +279,7 @@ const AccessSettingsModal: React.FC<AccessSettingsProps> = ({documentId, onClose
     };
 
     const applySettings = () => {
-        fetch(`http://${API_BASE_URL}/api/documents/${documentId}/settings`, {
+        fetch(`${API_BASE_URL}/api/documents/${documentId}/settings`, {
             method: "PUT",
             credentials: "include",
             headers: {"Content-Type": "application/json"},
