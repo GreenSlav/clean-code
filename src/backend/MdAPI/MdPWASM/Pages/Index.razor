@@ -1,0 +1,36 @@
+@page "/mdprocessor"
+@using MarkdownProcessor 
+@using MarkdownProcessor.Classes
+@using MarkdownProcessor.Interfaces
+@using MarkdownProcessor.Structs.Tags
+// Убедись, что пространство имен правильное
+@code {
+    private string markdownText = "";
+    private string htmlOutput = "";
+    private MdProcessor _markdownProcessor;
+
+    protected override void OnInitialized()
+    {
+        // Инициализируем MdProcessor
+        var ital = new ItalicsTag();
+        var bold = new BoldTag();
+        var link = new Link();
+        var header = new HeaderTag();
+        var main = new MainTag();
+        
+        var list = new List<ITag> { bold, ital, link, header, main };
+        
+        _markdownProcessor = new MdProcessor(new StringParser(list), new StringMdRenderer());
+    }
+
+    void ProcessMarkdown()
+    {
+        // Используем MdProcessor для преобразования текста
+        htmlOutput = _markdownProcessor.ParseAndRender(markdownText);
+    }
+}
+
+<!-- Интерфейс для пользователя -->
+<textarea @bind="markdownText" placeholder="Введите ваш Markdown"></textarea>
+<div>@((MarkupString)htmlOutput)</div>
+<button @onclick="ProcessMarkdown">Преобразовать</button>
